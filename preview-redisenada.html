@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>NeuropGen</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: #20302b;
+        background:
+          radial-gradient(circle at 10% 10%, rgba(93, 195, 145, .26), transparent 28%),
+          radial-gradient(circle at 90% 8%, rgba(47, 143, 115, .20), transparent 32%),
+          #f7fbf8;
+        overflow-x: hidden;
+      }
+      .genes {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: .22;
+        background-image:
+          radial-gradient(circle, #2f8f73 2px, transparent 3px),
+          linear-gradient(115deg, transparent 48%, #2f8f73 49%, #2f8f73 51%, transparent 52%);
+        background-size: 80px 80px, 140px 140px;
+        animation: drift 18s linear infinite;
+      }
+      @keyframes drift { to { transform: translate3d(-80px, 80px, 0); } }
+      .wrap { width: min(1180px, calc(100% - 32px)); margin: 0 auto; position: relative; }
+      header { padding: 28px 0 16px; display: flex; justify-content: space-between; gap: 18px; align-items: center; }
+      .brand { display: flex; align-items: center; gap: 12px; color: #17614f; font-size: 24px; font-weight: 900; text-decoration: none; }
+      .mark { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 999px; background: linear-gradient(135deg, #61c897, #17614f); }
+      nav { display: flex; flex-wrap: wrap; gap: 10px; }
+      nav a { border-radius: 999px; background: rgba(255,255,255,.78); padding: 10px 14px; color: #17614f; text-decoration: none; font-weight: 850; border: 1px solid rgba(92,82,72,.12); }
+      main { min-height: calc(100vh - 170px); display: grid; grid-template-columns: 1.1fr 1fr; gap: 26px; align-items: center; padding: 24px 0 36px; }
+      .hero, .card { border: 1px solid rgba(92,82,72,.14); background: rgba(255,255,255,.82); border-radius: 28px; box-shadow: 0 24px 70px rgba(80,69,58,.10); }
+      .hero { padding: clamp(26px, 5vw, 46px); }
+      .pill { display: inline-flex; border-radius: 999px; background: #e6f6ef; color: #17614f; padding: 8px 14px; font-weight: 900; }
+      h1 { margin: 26px 0 12px; color: #17614f; font-size: clamp(46px, 7vw, 72px); line-height: .95; }
+      h2 { margin: 0; color: #2f8f73; font-size: clamp(24px, 4vw, 31px); line-height: 1.15; }
+      p { color: #6b625b; font-size: 17px; line-height: 1.65; }
+      .quote { margin-top: 28px; border-radius: 18px; background: linear-gradient(135deg, #08705e, #4bb289); color: white; padding: 20px; font-weight: 750; box-shadow: 0 18px 50px rgba(23,97,79,.22); }
+      .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+      .card { min-height: 260px; padding: 26px; display: flex; flex-direction: column; justify-content: space-between; }
+      .icon { width: 52px; height: 52px; display: grid; place-items: center; border-radius: 16px; background: #f3eee9; font-size: 25px; }
+      .card h3 { margin: 18px 0 8px; font-size: 25px; line-height: 1.05; }
+      .button { align-self: flex-start; border-radius: 16px; background: #2f8f73; color: white; padding: 12px 18px; text-decoration: none; font-weight: 900; }
+      footer { background: #125446; color: rgba(255,255,255,.86); text-align: center; padding: 24px 16px; position: relative; }
+      @media (max-width: 900px) {
+        main, .cards { grid-template-columns: 1fr; }
+        header { align-items: flex-start; flex-direction: column; }
+        .card { min-height: auto; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="genes" aria-hidden="true"></div>
+    <div class="wrap">
+      <header>
+        <a class="brand" href="preview-redisenada.html"><span class="mark">🧠</span>NeuropGen</a>
+        <nav>
+          <a href="biblioteca-demo.html?seccion=enfermedades">Enfermedades Genéticas</a>
+          <a href="biblioteca-demo.html?seccion=psicoeducacion">Psicoeducación</a>
+          <a href="biblioteca-demo.html?seccion=recursos">Recursos para Familias</a>
+          <a href="biblioteca-demo.html?seccion=grupo">Grupo de Apoyo</a>
+          <a href="admin-demo.html">Admin</a>
+        </nav>
+      </header>
+      <main>
+        <section class="hero">
+          <span class="pill">Un refugio para familias extraordinarias</span>
+          <h1>NeuropGen</h1>
+          <h2>Conectando la genética, el neurodesarrollo y las familias.</h2>
+          <p>NeuropGen es una plataforma de psicoeducación genética y neuropsicológica diseñada para acercar información confiable, clara y humana a pacientes, familias y profesionales.</p>
+          <div class="quote">"Cuando llega un diagnóstico, también puede empezar un camino acompañado, con palabras simples y pasos posibles."</div>
+        </section>
+        <section class="cards" aria-label="Módulos principales">
+          <article class="card"><div><span class="icon">🧬</span><h3>Enfermedades Genéticas</h3><p>Biblioteca clara sobre síndromes, genética y apoyos.</p></div><a class="button" href="biblioteca-demo.html?seccion=enfermedades">Acceder</a></article>
+          <article class="card"><div><span class="icon">🧠</span><h3>Psicoeducación</h3><p>Videos y explicaciones sobre neurodesarrollo y aprendizaje.</p></div><a class="button" href="biblioteca-demo.html?seccion=psicoeducacion">Acceder</a></article>
+          <article class="card"><div><span class="icon">📚</span><h3>Recursos para Familias</h3><p>Guías, infografías, checklists y materiales descargables.</p></div><a class="button" href="biblioteca-demo.html?seccion=recursos">Acceder</a></article>
+          <article class="card"><div><span class="icon">🤝</span><h3>Grupo de Apoyo</h3><p>Próxima reunión, tema, modalidad e inscripción.</p></div><a class="button" href="biblioteca-demo.html?seccion=grupo">Acceder</a></article>
+        </section>
+      </main>
+    </div>
+    <footer>
+      Creación por parte de Neuropsicólogo Andrés Escalera Páez, Dra. Belen Prieto Corona, Dra. Sulema Rojas, Dra. Julieta Moreno, Dr. Edgar Ricardez.<br />
+      © 2024 Neurapeuta. Todos los derechos reservados.
+    </footer>
+  </body>
+</html>

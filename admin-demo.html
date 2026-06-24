@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>NeuropGen - Admin Demo</title>
+    <style>
+      * { box-sizing: border-box; }
+      :root {
+        --paper: #f7fbf8;
+        --green: #2f8f73;
+        --green-dark: #17614f;
+        --muted: #6b625b;
+        --line: rgba(92, 82, 72, .14);
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background:
+          radial-gradient(circle at 15% 10%, rgba(120, 205, 166, .24), transparent 28%),
+          radial-gradient(circle at 90% 8%, rgba(55, 143, 115, .18), transparent 30%),
+          var(--paper);
+        color: #2d2d2d;
+      }
+      a { color: inherit; text-decoration: none; }
+      .wrap { width: min(1120px, calc(100% - 32px)); margin: 0 auto; }
+      header { padding: 22px 0; }
+      .nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+      .brand { display: inline-flex; align-items: center; gap: 12px; color: var(--green-dark); font-size: 24px; font-weight: 850; }
+      .brain { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 999px; background: linear-gradient(135deg, #61c897, #17614f); }
+      .back { border-radius: 999px; background: white; border: 1px solid var(--line); padding: 10px 14px; font-weight: 800; color: var(--green-dark); }
+      main { padding: 16px 0 42px; }
+      .hero { border: 1px solid var(--line); background: rgba(255,255,255,.74); border-radius: 28px; padding: 28px; box-shadow: 0 24px 70px rgba(80, 69, 58, .08); }
+      h1 { margin: 0; color: var(--green-dark); font-size: clamp(34px, 5vw, 58px); line-height: 1; }
+      .lead { margin: 14px 0 0; max-width: 760px; color: var(--muted); font-size: 18px; line-height: 1.7; }
+      .notice { margin-top: 20px; display: inline-flex; border-radius: 18px; background: #eaf7f1; color: var(--green-dark); padding: 12px 16px; font-weight: 850; }
+      .grid { display: grid; gap: 18px; grid-template-columns: 280px 1fr; margin-top: 22px; }
+      .panel, .sidebar { min-width: 0; border: 1px solid var(--line); background: white; border-radius: 22px; padding: 18px; box-shadow: 0 18px 48px rgba(80, 69, 58, .08); }
+      .tabs { display: grid; gap: 8px; }
+      .tab { width: 100%; border: 0; border-radius: 16px; padding: 12px 14px; text-align: left; background: #f2f8f5; color: var(--green-dark); font-weight: 850; cursor: pointer; }
+      .tab.active { background: var(--green); color: white; }
+      .toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; align-items: center; }
+      .button { border: 0; border-radius: 16px; background: var(--green); color: white; padding: 11px 15px; font-weight: 850; cursor: pointer; }
+      .button.secondary { background: #eaf7f1; color: var(--green-dark); }
+      .cards { display: grid; gap: 12px; margin-top: 16px; }
+      .card { border: 1px solid var(--line); border-radius: 18px; background: #f7fbf8; padding: 15px; }
+      .card-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+      .card-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+      .card h3 { margin: 0; color: #24312d; font-size: 20px; }
+      .card p { margin: 8px 0 0; color: var(--muted); line-height: 1.55; }
+      .badge { white-space: nowrap; border-radius: 999px; background: #dff3eb; color: var(--green-dark); padding: 5px 10px; font-size: 12px; font-weight: 850; }
+      .editor { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 16px; }
+      .editor-grid { display: grid; grid-template-columns: 1fr 160px 160px; gap: 12px; align-items: end; }
+      .editor-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+      .editor-note { margin: 8px 0 0; color: var(--muted); line-height: 1.55; font-size: 14px; }
+      .block-editor { margin-top: 16px; border-radius: 18px; background: #f2f8f5; border: 1px solid var(--line); padding: 14px; }
+      .block-editor h3 { margin: 0; color: var(--green-dark); }
+      label { display: block; margin-top: 12px; font-size: 13px; font-weight: 850; color: #3c4642; }
+      input, textarea, select {
+        margin-top: 6px; width: 100%; min-height: 42px; border-radius: 14px; border: 1px solid var(--line);
+        padding: 10px 12px; font: inherit; outline: none;
+      }
+      textarea { min-height: 92px; resize: vertical; }
+      .blocks { display: grid; gap: 10px; margin-top: 12px; }
+      .block { min-width: 0; display: grid; grid-template-columns: 140px minmax(0, 1fr) auto; gap: 10px; align-items: center; border: 1px dashed rgba(47,143,115,.35); background: #fafffc; border-radius: 16px; padding: 10px; }
+      .block span { min-width: 0; overflow-wrap: anywhere; }
+      .toast {
+        position: fixed; right: 18px; bottom: 18px; z-index: 20; max-width: min(360px, calc(100% - 36px));
+        border-radius: 18px; background: #123f35; color: white; padding: 14px 16px; box-shadow: 0 18px 48px rgba(0,0,0,.20);
+        opacity: 0; transform: translateY(12px); pointer-events: none; transition: .2s ease;
+      }
+      .toast.show { opacity: 1; transform: translateY(0); }
+      footer { margin-top: 26px; color: var(--muted); font-size: 13px; text-align: center; }
+      @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+      @media (max-width: 640px) {
+        .wrap { width: min(100% - 22px, 1120px); }
+        .nav { align-items: flex-start; flex-direction: column; }
+        .back, .button { width: 100%; text-align: center; }
+        .hero { padding: 22px 18px; border-radius: 22px; }
+        .tabs { display: flex; overflow-x: auto; padding-bottom: 4px; }
+        .tab { flex: 0 0 auto; width: auto; white-space: nowrap; }
+        .toolbar > div:last-child, .editor-actions { display: grid; width: 100%; gap: 8px; }
+        .card-head, .block { grid-template-columns: 1fr; flex-direction: column; }
+        .editor-grid { grid-template-columns: 1fr; }
+        input, textarea, select { font-size: 16px; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="wrap nav">
+        <a class="brand" href="preview-redisenada.html"><span class="brain">🧠</span><span>NeuropGen</span></a>
+        <a class="back" href="preview-redisenada.html">← Volver al sitio</a>
+      </div>
+    </header>
+    <main class="wrap">
+      <section class="hero">
+        <h1>Panel Admin Demo</h1>
+        <p class="lead">Este panel demuestra cómo se administrará el contenido jerárquico de NeuropGen: Sección → Tema → Subtema → Bloques. En esta preview no necesitas correo ni contraseña.</p>
+        <div class="notice">Demo local desbloqueado. Para producción se conectará con Firebase Authentication.</div>
+      </section>
+
+      <section class="grid" aria-label="Panel administrador">
+        <aside class="sidebar">
+          <div class="tabs">
+            <button class="tab active">🧬 Enfermedades Genéticas</button>
+            <button class="tab">🧠 Psicoeducación</button>
+            <button class="tab">📚 Recursos para Familias</button>
+            <button class="tab">🤝 Grupo de Apoyo</button>
+          </div>
+        </aside>
+
+        <section class="panel">
+          <div class="toolbar">
+            <div>
+              <strong style="color:var(--green-dark)">Biblioteca: Enfermedades Genéticas</strong>
+              <p style="margin:5px 0 0;color:var(--muted)">Crea, ordena, publica o desactiva temas y subtemas.</p>
+            </div>
+            <div>
+              <button class="button secondary" id="create-subtopic">Crear subtema</button>
+              <button class="button" id="create-topic">Crear tema</button>
+            </div>
+          </div>
+
+          <div class="cards"></div>
+
+          <div class="editor">
+            <h2 style="margin:0;color:var(--green-dark)">Editor de contenido guardado</h2>
+            <p class="editor-note">Al tocar Editar se carga aquí la información guardada. Modifica el tema, sus bloques y usa Guardar para conservar los cambios de la demo.</p>
+            <div class="editor-grid">
+              <label>Título del tema
+                <input id="topic-title-input" />
+              </label>
+              <label>Orden
+                <input id="topic-order-input" type="number" min="1" />
+              </label>
+              <label>Estado
+                <select id="topic-status-input">
+                  <option>Publicado</option>
+                  <option>Borrador</option>
+                </select>
+              </label>
+            </div>
+            <label>Descripción breve
+              <textarea id="topic-summary-input"></textarea>
+            </label>
+            <div class="editor-actions">
+              <button class="button" id="save-topic">Guardar tema</button>
+              <button class="button secondary" id="reset-demo">Restaurar datos demo</button>
+            </div>
+
+            <div class="block-editor">
+              <h3>Bloque seleccionado</h3>
+              <div class="editor-grid">
+                <label>Tipo de bloque
+                  <select id="block-type-input">
+                    <option>Texto</option>
+                    <option>Imagen</option>
+                    <option>Video</option>
+                    <option>PDF</option>
+                    <option>Enlace</option>
+                    <option>Nota</option>
+                  </select>
+                </label>
+                <label>Título del bloque
+                  <input id="block-title-input" />
+                </label>
+                <label>Archivo o enlace
+                  <input id="block-url-input" placeholder="URL de YouTube, PDF, imagen o recurso" />
+                </label>
+              </div>
+              <label>Texto o descripción del bloque
+                <textarea id="block-text-input"></textarea>
+              </label>
+              <label>Subir documento, imagen o video
+                <input id="block-file-input" type="file" />
+              </label>
+              <div class="editor-actions">
+                <button class="button" id="save-block">Guardar bloque</button>
+                <button class="button secondary" id="add-block">Agregar bloque</button>
+              </div>
+            </div>
+
+            <div class="blocks" aria-label="Bloques del tema seleccionado"></div>
+          </div>
+        </section>
+      </section>
+      <footer>© 2024 Neurapeuta. Todos los derechos reservados.</footer>
+    </main>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script>
+      const storageKey = "neuropgen-admin-demo-v2";
+      const defaultBlocks = [
+        { type: "Texto", title: "¿Qué es?", text: "Explicación para familias con formato simple.", url: "" },
+        { type: "Imagen", title: "Imagen principal", text: "Subida desde Firebase Storage.", url: "storage://imagenes/ejemplo.jpg" },
+        { type: "Video", title: "Video relacionado", text: "YouTube o video subido.", url: "https://youtube.com/" },
+        { type: "PDF", title: "Recurso descargable", text: "Archivo descargable para casa o escuela.", url: "storage://pdfs/guia.pdf" },
+        { type: "Nota", title: "Nota importante", text: "Cita o información importante destacada.", url: "" }
+      ];
+      const defaultAdminData = {
+        "Enfermedades Genéticas": [
+          { title: "Síndrome de Turner", summary: "Biblioteca clara sobre síndrome de Turner, genética, manifestaciones y apoyos para casa y escuela.", subtopics: 8, order: 1, status: "Publicado", blocks: structuredClone(defaultBlocks) },
+          { title: "Síndrome X Frágil", summary: "Información sobre causa genética, perfil del neurodesarrollo y recomendaciones.", subtopics: 1, order: 2, status: "Publicado", blocks: structuredClone(defaultBlocks).slice(0, 2) },
+          { title: "CADASIL", summary: "Tema listo para completar desde el panel administrador.", subtopics: 0, order: 4, status: "Borrador", blocks: [] }
+        ],
+        "Psicoeducación": [
+          { title: "Neurodesarrollo", summary: "Videos y explicaciones para comprender hitos, conducta y aprendizaje.", subtopics: 1, order: 1, status: "Publicado", blocks: structuredClone(defaultBlocks).slice(0, 2) },
+          { title: "Funciones Ejecutivas", summary: "Material sobre planeación, memoria de trabajo, atención y regulación.", subtopics: 1, order: 2, status: "Publicado", blocks: structuredClone(defaultBlocks).slice(0, 1) }
+        ],
+        "Recursos para Familias": [
+          { title: "Guías", summary: "Materiales descargables para acompañamiento en casa y escuela.", subtopics: 1, order: 1, status: "Publicado", blocks: structuredClone(defaultBlocks).slice(0, 2) },
+          { title: "Checklists", summary: "Listas prácticas para organizar información y seguimiento.", subtopics: 1, order: 2, status: "Publicado", blocks: structuredClone(defaultBlocks).slice(0, 1) }
+        ],
+        "Grupo de Apoyo": [
+          { title: "Reuniones", summary: "Próxima reunión, modalidad, tema, inscripción y datos de contacto.", subtopics: 1, order: 1, status: "Publicado", blocks: structuredClone(defaultBlocks).slice(4) }
+        ]
+      };
+
+      let adminData = loadAdminData();
+      let currentAdminSection = "Enfermedades Genéticas";
+      let selectedTopicIndex = 0;
+      let selectedBlockIndex = 0;
+
+      const tabs = Array.from(document.querySelectorAll(".tab"));
+      const cards = document.querySelector(".cards");
+      const libraryTitle = document.querySelector(".toolbar strong");
+      const blocksList = document.querySelector(".blocks");
+      const topicTitleInput = document.querySelector("#topic-title-input");
+      const topicOrderInput = document.querySelector("#topic-order-input");
+      const topicStatusInput = document.querySelector("#topic-status-input");
+      const topicSummaryInput = document.querySelector("#topic-summary-input");
+      const blockTypeInput = document.querySelector("#block-type-input");
+      const blockTitleInput = document.querySelector("#block-title-input");
+      const blockUrlInput = document.querySelector("#block-url-input");
+      const blockTextInput = document.querySelector("#block-text-input");
+      const blockFileInput = document.querySelector("#block-file-input");
+
+      tabs.forEach((tab, index) => {
+        const section = Object.keys(adminData)[index];
+        tab.dataset.section = section;
+        tab.addEventListener("click", () => {
+          currentAdminSection = section;
+          selectedTopicIndex = 0;
+          selectedBlockIndex = 0;
+          renderAdmin();
+          loadTopicEditor(0);
+          showToast(`Se abrió la biblioteca: ${section}`);
+        });
+      });
+
+      document.querySelector("#create-topic").addEventListener("click", () => {
+        const next = adminData[currentAdminSection].length + 1;
+        adminData[currentAdminSection].push({ title: `Nuevo tema ${next}`, summary: "Escribe aquí la descripción breve del tema.", subtopics: 0, order: next, status: "Borrador", blocks: [] });
+        selectedTopicIndex = adminData[currentAdminSection].length - 1;
+        persistDemo();
+        renderAdmin();
+        loadTopicEditor(selectedTopicIndex);
+        showToast("Tema creado y guardado en la demo.");
+      });
+
+      document.querySelector("#create-subtopic").addEventListener("click", () => {
+        const topic = currentTopic();
+        topic.subtopics += 1;
+        topic.blocks.push({ type: "Texto", title: `Nuevo subtema ${topic.subtopics}`, text: "Escribe aquí el contenido del subtema.", url: "" });
+        selectedBlockIndex = topic.blocks.length - 1;
+        persistDemo();
+        renderAdmin();
+        loadTopicEditor(selectedTopicIndex);
+        showToast("Subtema creado y guardado dentro del tema seleccionado.");
+      });
+
+      document.querySelector("#save-topic").addEventListener("click", () => {
+        const topic = currentTopic();
+        topic.title = topicTitleInput.value.trim() || "Tema sin título";
+        topic.summary = topicSummaryInput.value.trim();
+        topic.order = Number(topicOrderInput.value) || 1;
+        topic.status = topicStatusInput.value;
+        persistDemo();
+        renderAdmin();
+        loadTopicEditor(selectedTopicIndex);
+        showToast("Tema guardado. En producción esto se guardará en Firestore.");
+      });
+
+      document.querySelector("#save-block").addEventListener("click", () => {
+        const topic = currentTopic();
+        if (!topic.blocks.length) topic.blocks.push({ type: "Texto", title: "Nuevo bloque", text: "", url: "" });
+        const block = topic.blocks[selectedBlockIndex] || topic.blocks[0];
+        block.type = blockTypeInput.value;
+        block.title = blockTitleInput.value.trim() || "Bloque sin título";
+        block.text = blockTextInput.value.trim();
+        block.url = blockFileInput.files[0] ? blockFileInput.files[0].name : blockUrlInput.value.trim();
+        persistDemo();
+        renderAdmin();
+        renderBlocks();
+        loadBlockEditor(selectedBlockIndex);
+        blockFileInput.value = "";
+        showToast("Bloque guardado. En producción el archivo se subirá a Firebase Storage.");
+      });
+
+      document.querySelector("#add-block").addEventListener("click", () => {
+        const topic = currentTopic();
+        topic.blocks.push({ type: "Texto", title: "Nuevo bloque", text: "Contenido pendiente por editar.", url: "" });
+        selectedBlockIndex = topic.blocks.length - 1;
+        persistDemo();
+        renderAdmin();
+        renderBlocks();
+        loadBlockEditor(selectedBlockIndex);
+        showToast("Bloque agregado al tema seleccionado.");
+      });
+
+      document.querySelector("#reset-demo").addEventListener("click", () => {
+        adminData = structuredClone(defaultAdminData);
+        currentAdminSection = "Enfermedades Genéticas";
+        selectedTopicIndex = 0;
+        selectedBlockIndex = 0;
+        persistDemo();
+        renderAdmin();
+        loadTopicEditor(0);
+        showToast("Datos demo restaurados.");
+      });
+
+      document.addEventListener("click", (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) return;
+        if (target.dataset.blockIndex) {
+          selectedBlockIndex = Number(target.dataset.blockIndex);
+          loadBlockEditor(selectedBlockIndex);
+          showToast("Bloque cargado para editar.");
+        }
+        if (target.dataset.cardAction) {
+          const index = Number(target.dataset.index);
+          const topic = adminData[currentAdminSection][index];
+          if (!topic) return;
+          selectedTopicIndex = index;
+          if (target.dataset.cardAction === "delete") {
+            adminData[currentAdminSection].splice(index, 1);
+            selectedTopicIndex = Math.max(0, Math.min(selectedTopicIndex, adminData[currentAdminSection].length - 1));
+            persistDemo();
+            renderAdmin();
+            loadTopicEditor(selectedTopicIndex);
+            showToast("Tema eliminado y cambio guardado en la demo.");
+            return;
+          }
+          if (target.dataset.cardAction === "toggle") {
+            topic.status = topic.status === "Publicado" ? "Borrador" : "Publicado";
+            persistDemo();
+            renderAdmin();
+            loadTopicEditor(selectedTopicIndex);
+            showToast(`Estado cambiado a ${topic.status} y guardado.`);
+            return;
+          }
+          loadTopicEditor(index);
+          showToast(`Editando ${topic.title}. Ya puedes modificarlo y guardar.`);
+        }
+      });
+
+      function loadAdminData() {
+        const saved = localStorage.getItem(storageKey);
+        if (!saved) return structuredClone(defaultAdminData);
+        try { return normalizeData(JSON.parse(saved)); } catch { return structuredClone(defaultAdminData); }
+      }
+      function normalizeData(data) {
+        Object.values(data).forEach((topics) => topics.forEach((topic) => {
+          topic.summary ||= "Descripción pendiente.";
+          topic.subtopics = Number(topic.subtopics || 0);
+          topic.order = Number(topic.order || 1);
+          topic.status ||= "Borrador";
+          if (!Array.isArray(topic.blocks)) topic.blocks = [];
+        }));
+        return data;
+      }
+      function persistDemo() { localStorage.setItem(storageKey, JSON.stringify(adminData)); }
+      function currentTopic() {
+        const topics = adminData[currentAdminSection];
+        if (!topics.length) topics.push({ title: "Nuevo tema", summary: "", subtopics: 0, order: 1, status: "Borrador", blocks: [] });
+        return topics[selectedTopicIndex] || topics[0];
+      }
+      function loadTopicEditor(index) {
+        selectedTopicIndex = Math.max(0, index);
+        selectedBlockIndex = 0;
+        const topic = currentTopic();
+        topicTitleInput.value = topic.title;
+        topicOrderInput.value = topic.order;
+        topicStatusInput.value = topic.status;
+        topicSummaryInput.value = topic.summary;
+        renderBlocks();
+        loadBlockEditor(0);
+      }
+      function loadBlockEditor(index) {
+        const topic = currentTopic();
+        selectedBlockIndex = Math.max(0, Math.min(index, topic.blocks.length - 1));
+        const block = topic.blocks[selectedBlockIndex] || { type: "Texto", title: "", text: "", url: "" };
+        blockTypeInput.value = block.type || "Texto";
+        blockTitleInput.value = block.title || "";
+        blockTextInput.value = block.text || "";
+        blockUrlInput.value = block.url || "";
+        blockFileInput.value = "";
+        renderBlocks();
+      }
+      function renderAdmin() {
+        tabs.forEach((tab) => tab.classList.toggle("active", tab.dataset.section === currentAdminSection));
+        libraryTitle.textContent = `Biblioteca: ${currentAdminSection}`;
+        cards.innerHTML = adminData[currentAdminSection].map((topic, index) => `
+          <article class="card">
+            <div class="card-head">
+              <div>
+                <h3>${escapeHtml(topic.title)}</h3>
+                <p>${topic.subtopics} subtema${topic.subtopics === 1 ? "" : "s"} · ${topic.blocks.length} bloque${topic.blocks.length === 1 ? "" : "s"} · Orden ${topic.order}</p>
+                <p>${escapeHtml(topic.summary)}</p>
+              </div>
+              <span class="badge">${topic.status}</span>
+            </div>
+            <div class="card-actions">
+              <button class="button secondary" data-card-action="edit" data-index="${index}">Editar</button>
+              <button class="button secondary" data-card-action="toggle" data-index="${index}">${topic.status === "Publicado" ? "Pasar a borrador" : "Publicar"}</button>
+              <button class="button secondary" data-card-action="delete" data-index="${index}">Eliminar</button>
+            </div>
+          </article>
+        `).join("");
+      }
+      function renderBlocks() {
+        const topic = currentTopic();
+        if (!topic.blocks.length) {
+          blocksList.innerHTML = `<div class="block"><strong>Sin bloques</strong><span>Agrega un bloque de texto, imagen, video, PDF, enlace o nota.</span><button class="button secondary" id="empty-add-block">Agregar</button></div>`;
+          document.querySelector("#empty-add-block")?.addEventListener("click", () => document.querySelector("#add-block").click(), { once: true });
+          return;
+        }
+        blocksList.innerHTML = topic.blocks.map((block, index) => `
+          <div class="block">
+            <strong>${escapeHtml(block.type)}</strong>
+            <span><b>${escapeHtml(block.title)}</b><br>${escapeHtml(block.text || block.url || "Contenido pendiente.")}</span>
+            <button class="button secondary" data-block-index="${index}">${index === selectedBlockIndex ? "Editando" : "Editar"}</button>
+          </div>
+        `).join("");
+      }
+      function showToast(message) {
+        const toast = document.querySelector("#toast");
+        toast.textContent = message;
+        toast.classList.add("show");
+        clearTimeout(window.toastTimer);
+        window.toastTimer = setTimeout(() => toast.classList.remove("show"), 2600);
+      }
+      function escapeHtml(value) {
+        return String(value || "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char]));
+      }
+      renderAdmin();
+      loadTopicEditor(0);
+    </script>
+  </body>
+</html>

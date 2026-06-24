@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>NeuropGen - Biblioteca</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f7fbf8; color: #23332e; }
+      .wrap { width: min(1120px, calc(100% - 32px)); margin: 0 auto; }
+      header { padding: 24px 0; display: flex; justify-content: space-between; gap: 16px; align-items: center; }
+      a { color: inherit; text-decoration: none; }
+      .brand { display: flex; align-items: center; gap: 12px; color: #17614f; font-size: 24px; font-weight: 900; }
+      .mark { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 999px; background: linear-gradient(135deg, #61c897, #17614f); }
+      .back { border-radius: 999px; background: white; border: 1px solid rgba(92,82,72,.14); padding: 10px 14px; color: #17614f; font-weight: 850; }
+      .hero, .panel { background: white; border: 1px solid rgba(92,82,72,.14); border-radius: 24px; box-shadow: 0 18px 48px rgba(80,69,58,.08); }
+      .hero { padding: 28px; margin-bottom: 18px; }
+      h1 { margin: 0; color: #17614f; font-size: clamp(36px, 5vw, 56px); }
+      p { color: #6b625b; line-height: 1.65; }
+      .tools { display: grid; grid-template-columns: 1fr 220px; gap: 12px; margin-top: 18px; }
+      input, select { min-height: 46px; border: 1px solid rgba(92,82,72,.14); border-radius: 16px; padding: 10px 14px; font: inherit; }
+      .layout { display: grid; grid-template-columns: 320px 1fr; gap: 18px; }
+      .panel { padding: 18px; }
+      .topics, .subtopics { display: grid; gap: 10px; }
+      button { border: 0; border-radius: 16px; padding: 12px 14px; background: #eaf7f1; color: #17614f; font: inherit; font-weight: 850; text-align: left; cursor: pointer; }
+      button.active, .cta { background: #2f8f73; color: white; }
+      .content { display: grid; gap: 14px; }
+      .block { border: 1px dashed rgba(47,143,115,.35); border-radius: 18px; background: #fafffc; padding: 16px; }
+      .block strong { color: #17614f; }
+      .crumbs { color: #17614f; font-weight: 800; margin-bottom: 12px; }
+      @media (max-width: 820px) { .layout, .tools { grid-template-columns: 1fr; } header { flex-direction: column; align-items: flex-start; } .back { width: 100%; text-align: center; } }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <a class="brand" href="preview-redisenada.html"><span class="mark">🧠</span>NeuropGen</a>
+        <a class="back" href="preview-redisenada.html">← Volver al inicio</a>
+      </header>
+      <main>
+        <section class="hero">
+          <div class="crumbs">Inicio > <span id="section-name">Enfermedades Genéticas</span></div>
+          <h1 id="title">Biblioteca</h1>
+          <p>Vista previa de la navegación pública: sección, temas, subtemas y contenido organizado para familias.</p>
+          <div class="tools">
+            <input id="search" placeholder="Buscar temas o subtemas" />
+            <select id="section-filter">
+              <option value="enfermedades">Enfermedades Genéticas</option>
+              <option value="psicoeducacion">Psicoeducación</option>
+              <option value="recursos">Recursos para Familias</option>
+              <option value="grupo">Grupo de Apoyo</option>
+            </select>
+          </div>
+        </section>
+        <section class="layout">
+          <aside class="panel"><h2>Temas</h2><div class="topics" id="topics"></div></aside>
+          <section class="panel">
+            <h2 id="topic-title">Síndrome de Turner</h2>
+            <div class="subtopics" id="subtopics"></div>
+            <div class="content" id="content"></div>
+          </section>
+        </section>
+      </main>
+    </div>
+    <script>
+      const data = {
+        enfermedades: { name: "Enfermedades Genéticas", topics: ["Síndrome de Turner", "Síndrome X Frágil", "Síndrome de Williams", "CADASIL"], subtopics: ["¿Qué es?", "Causa genética", "Manifestaciones clínicas", "Perfil neuropsicológico", "Recomendaciones para casa", "Recomendaciones para escuela", "Recursos descargables", "Videos relacionados"] },
+        psicoeducacion: { name: "Psicoeducación", topics: ["Neurodesarrollo", "Autismo", "TDAH", "Funciones Ejecutivas"], subtopics: ["Introducción", "Video educativo", "Estrategias prácticas", "Material complementario"] },
+        recursos: { name: "Recursos para Familias", topics: ["Guías", "Infografías", "Checklists", "Material escolar"], subtopics: ["Descripción", "PDF descargable", "Cómo usarlo", "Enlaces útiles"] },
+        grupo: { name: "Grupo de Apoyo", topics: ["Reuniones", "Inscripción", "Contacto"], subtopics: ["Próxima reunión", "Tema", "Modalidad", "Datos de contacto"] }
+      };
+      const params = new URLSearchParams(location.search);
+      let section = params.get("seccion") || "enfermedades";
+      let topicIndex = 0;
+      let subtopicIndex = 0;
+      const sectionFilter = document.querySelector("#section-filter");
+      const topics = document.querySelector("#topics");
+      const subtopics = document.querySelector("#subtopics");
+      const content = document.querySelector("#content");
+      const search = document.querySelector("#search");
+      sectionFilter.value = section;
+      sectionFilter.addEventListener("change", () => { section = sectionFilter.value; topicIndex = 0; subtopicIndex = 0; render(); });
+      search.addEventListener("input", render);
+      function render() {
+        const current = data[section];
+        document.querySelector("#section-name").textContent = current.name;
+        document.querySelector("#title").textContent = current.name;
+        const term = search.value.toLowerCase();
+        const filteredTopics = current.topics.map((title, index) => ({ title, index })).filter(item => item.title.toLowerCase().includes(term) || current.subtopics.some(s => s.toLowerCase().includes(term)));
+        topics.innerHTML = filteredTopics.map(item => `<button class="${item.index === topicIndex ? "active" : ""}" data-topic="${item.index}">${item.title}</button>`).join("");
+        document.querySelector("#topic-title").textContent = current.topics[topicIndex] || current.topics[0];
+        subtopics.innerHTML = current.subtopics.map((title, index) => `<button class="${index === subtopicIndex ? "active" : ""}" data-subtopic="${index}">${title}</button>`).join("");
+        content.innerHTML = `
+          <article class="block"><strong>${current.subtopics[subtopicIndex]}</strong><p>Contenido de ejemplo administrable desde el panel Admin. Aquí aparecerán textos, imágenes, videos, PDFs y enlaces externos.</p></article>
+          <article class="block"><strong>Material relacionado</strong><p>Botones de descarga, video o enlace se conectarán con Firebase Storage y Firestore en producción.</p></article>
+        `;
+        document.querySelectorAll("[data-topic]").forEach(button => button.addEventListener("click", () => { topicIndex = Number(button.dataset.topic); subtopicIndex = 0; render(); }));
+        document.querySelectorAll("[data-subtopic]").forEach(button => button.addEventListener("click", () => { subtopicIndex = Number(button.dataset.subtopic); render(); }));
+      }
+      render();
+    </script>
+  </body>
+</html>
