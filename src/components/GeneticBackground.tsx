@@ -1,52 +1,85 @@
 "use client";
 
-const HELIX_CENTER_X = 90;
-const HELIX_AMPLITUDE = 52;
-const HELIX_PERIOD = 160;
-const HELIX_HEIGHT = 1000;
-const STEP = 12;
+const CX = 85;        // center x of helix
+const AMP = 50;       // amplitude
+const PERIOD = 180;   // px per full cycle
+const TOTAL = 1080;   // total height
 
-function buildStrandPath(phase: number): string {
-  const points: string[] = [];
-  for (let y = 0; y <= HELIX_HEIGHT; y += STEP) {
-    const angle = ((y / HELIX_PERIOD) * 2 * Math.PI) + phase;
-    const x = HELIX_CENTER_X + HELIX_AMPLITUDE * Math.sin(angle);
-    points.push(`${x.toFixed(1)},${y}`);
+// Build a smooth sine-wave path using cubic beziers.
+// Each half-period is one bezier segment.
+function buildHelixPath(phase: number): string {
+  const halfP = PERIOD / 2;
+  const cp = AMP * 1.2; // control-point offset ≈ (4/3)*tan(π/4)*amp for a circle approximation
+
+  let d = "";
+  let y = 0;
+  let segments = 0;
+
+  while (y < TOTAL) {
+    const angle = ((y / PERIOD) * 2 * Math.PI) + phase;
+    const x = CX + AMP * Math.sin(angle);
+
+    const nextY = y + halfP;
+    const nextAngle = ((nextY / PERIOD) * 2 * Math.PI) + phase;
+    const nextX = CX + AMP * Math.sin(nextAngle);
+
+    // Control points: vertical tangent at peaks, horizontal tangent at crossings
+    const cy1 = y + halfP * 0.45;
+    const cy2 = y + halfP * 0.55;
+
+    // Direction of curve: if going right (+AMP), control points push outward
+    const dir = Math.cos(angle) > 0 ? 1 : -1;
+    const cpOffset = cp * dir;
+
+    if (segments === 0) {
+      d += `M ${x.toFixed(1)},${y} `;
+    }
+    d += `C ${(x + cpOffset).toFixed(1)},${cy1.toFixed(1)} ${(nextX - cpOffset).toFixed(1)},${cy2.toFixed(1)} ${nextX.toFixed(1)},${nextY.toFixed(1)} `;
+
+    y = nextY;
+    segments++;
   }
-  return "M " + points.join(" L ");
+
+  return d;
 }
 
-interface BasePair { y: number; x1: number; x2: number; opacity: number }
-
+// Base pair lines: draw short horizontal lines at intervals where strands are apart
+interface BasePair { y: number; x1: number; x2: number }
 function buildBasePairs(): BasePair[] {
   const pairs: BasePair[] = [];
-  for (let y = 0; y <= HELIX_HEIGHT; y += STEP) {
-    const angle = (y / HELIX_PERIOD) * 2 * Math.PI;
-    const x1 = HELIX_CENTER_X + HELIX_AMPLITUDE * Math.sin(angle);
-    const x2 = HELIX_CENTER_X - HELIX_AMPLITUDE * Math.sin(angle);
-    const dist = Math.abs(x1 - x2);
-    const maxDist = HELIX_AMPLITUDE * 2;
-    if (dist > maxDist * 0.5) {
-      pairs.push({ y, x1, x2, opacity: (dist / maxDist) * 0.22 });
+  const pairInterval = PERIOD / 10;
+  for (let y = pairInterval; y < TOTAL; y += pairInterval) {
+    const angle = (y / PERIOD) * 2 * Math.PI;
+    const sinVal = Math.sin(angle);
+    if (Math.abs(sinVal) > 0.25) {
+      pairs.push({
+        y,
+        x1: CX + AMP * sinVal,
+        x2: CX - AMP * sinVal,
+      });
     }
   }
   return pairs;
 }
 
+const strand1 = buildHelixPath(0);
+const strand2 = buildHelixPath(Math.PI);
+const pairs = buildBasePairs();
+
 const NODES = [
-  { cx: 320, cy: 120, r: 4 },
-  { cx: 480, cy: 200, r: 3 },
-  { cx: 650, cy: 90, r: 5 },
-  { cx: 750, cy: 280, r: 3 },
-  { cx: 560, cy: 360, r: 4 },
-  { cx: 820, cy: 420, r: 3 },
-  { cx: 400, cy: 480, r: 4 },
-  { cx: 700, cy: 530, r: 3 },
-  { cx: 300, cy: 620, r: 3 },
-  { cx: 600, cy: 700, r: 5 },
-  { cx: 850, cy: 660, r: 3 },
-  { cx: 450, cy: 760, r: 4 },
-  { cx: 720, cy: 820, r: 3 },
+  { cx: 380, cy: 140, r: 3.5 },
+  { cx: 530, cy: 210, r: 2.5 },
+  { cx: 680, cy: 100, r: 4 },
+  { cx: 790, cy: 290, r: 2.5 },
+  { cx: 590, cy: 380, r: 3.5 },
+  { cx: 840, cy: 440, r: 2.5 },
+  { cx: 430, cy: 490, r: 3 },
+  { cx: 730, cy: 560, r: 2.5 },
+  { cx: 330, cy: 650, r: 3 },
+  { cx: 630, cy: 730, r: 4 },
+  { cx: 870, cy: 680, r: 2.5 },
+  { cx: 480, cy: 790, r: 3.5 },
+  { cx: 750, cy: 850, r: 2.5 },
 ];
 
 const EDGES = [
@@ -54,10 +87,6 @@ const EDGES = [
   [1, 4], [4, 6], [5, 7], [6, 8], [7, 9],
   [8, 9], [9, 10], [9, 11], [10, 12],
 ];
-
-const strand1Path = buildStrandPath(0);
-const strand2Path = buildStrandPath(Math.PI);
-const basePairs = buildBasePairs();
 
 export function GeneticBackground() {
   return (
@@ -72,33 +101,39 @@ export function GeneticBackground() {
       }}
     >
       <svg
-        viewBox="0 0 900 1000"
+        viewBox="0 0 960 1080"
         xmlns="http://www.w3.org/2000/svg"
         preserveAspectRatio="xMidYMid slice"
         style={{ width: "100%", height: "100%" }}
       >
         <defs>
-          <linearGradient id="strand1Grad" x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id="helixFade" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#2f8f73" stopOpacity="0" />
-            <stop offset="20%" stopColor="#2f8f73" stopOpacity="0.6" />
-            <stop offset="80%" stopColor="#4bb289" stopOpacity="0.6" />
-            <stop offset="100%" stopColor="#4bb289" stopOpacity="0" />
-          </linearGradient>
-          <linearGradient id="strand2Grad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#5dc391" stopOpacity="0" />
-            <stop offset="20%" stopColor="#5dc391" stopOpacity="0.45" />
-            <stop offset="80%" stopColor="#2f8f73" stopOpacity="0.45" />
+            <stop offset="15%" stopColor="#2f8f73" stopOpacity="1" />
+            <stop offset="85%" stopColor="#2f8f73" stopOpacity="1" />
             <stop offset="100%" stopColor="#2f8f73" stopOpacity="0" />
           </linearGradient>
-          <filter id="glow">
-            <feGaussianBlur stdDeviation="2.5" result="blur" />
+          <linearGradient id="helix2Fade" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#5dc391" stopOpacity="0" />
+            <stop offset="15%" stopColor="#5dc391" stopOpacity="1" />
+            <stop offset="85%" stopColor="#5dc391" stopOpacity="1" />
+            <stop offset="100%" stopColor="#5dc391" stopOpacity="0" />
+          </linearGradient>
+          <mask id="helixMask">
+            <rect width="960" height="1080" fill="url(#helixFade)" />
+          </mask>
+          <mask id="helix2Mask">
+            <rect width="960" height="1080" fill="url(#helix2Fade)" />
+          </mask>
+          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="3" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
-          <filter id="softGlow">
-            <feGaussianBlur stdDeviation="4" result="blur" />
+          <filter id="nodeGlow" x="-200%" y="-200%" width="500%" height="500%">
+            <feGaussianBlur stdDeviation="5" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />
@@ -106,107 +141,88 @@ export function GeneticBackground() {
           </filter>
         </defs>
 
-        {/* Helix base pairs */}
-        {basePairs.map((bp, i) => (
-          <line
-            key={i}
-            x1={bp.x1.toFixed(1)}
-            y1={bp.y}
-            x2={bp.x2.toFixed(1)}
-            y2={bp.y}
-            stroke="#2f8f73"
-            strokeWidth="1"
-            opacity={bp.opacity}
-          />
-        ))}
+        {/* Base pairs */}
+        <g opacity="0.18" mask="url(#helixMask)">
+          {pairs.map((bp, i) => (
+            <line
+              key={i}
+              x1={bp.x1.toFixed(1)} y1={bp.y.toFixed(1)}
+              x2={bp.x2.toFixed(1)} y2={bp.y.toFixed(1)}
+              stroke="#2f8f73"
+              strokeWidth="1.2"
+              strokeLinecap="round"
+            />
+          ))}
+        </g>
 
-        {/* Helix strand 2 (back) */}
+        {/* Strand 2 (back, lighter) */}
         <path
-          d={strand2Path}
+          d={strand2}
           fill="none"
-          stroke="url(#strand2Grad)"
+          stroke="#5dc391"
           strokeWidth="2"
           strokeLinecap="round"
+          opacity="0.22"
+          mask="url(#helix2Mask)"
           filter="url(#glow)"
-          style={{ animation: "helixDrift 8s ease-in-out infinite" }}
+          style={{ animation: "helixFloat 9s ease-in-out infinite" }}
         />
 
-        {/* Helix strand 1 (front) */}
+        {/* Strand 1 (front, stronger) */}
         <path
-          d={strand1Path}
+          d={strand1}
           fill="none"
-          stroke="url(#strand1Grad)"
+          stroke="#2f8f73"
           strokeWidth="2.5"
           strokeLinecap="round"
+          opacity="0.28"
+          mask="url(#helixMask)"
           filter="url(#glow)"
-          style={{ animation: "helixDrift 8s ease-in-out infinite reverse" }}
+          style={{ animation: "helixFloat 9s ease-in-out infinite reverse" }}
         />
 
-        {/* Molecular network edges */}
-        {EDGES.map(([a, b], i) => (
-          <line
-            key={i}
-            x1={NODES[a].cx}
-            y1={NODES[a].cy}
-            x2={NODES[b].cx}
-            y2={NODES[b].cy}
-            stroke="#2f8f73"
-            strokeWidth="0.8"
-            opacity="0.12"
-          />
-        ))}
+        {/* Molecular network */}
+        <g opacity="0.13">
+          {EDGES.map(([a, b], i) => (
+            <line
+              key={i}
+              x1={NODES[a].cx} y1={NODES[a].cy}
+              x2={NODES[b].cx} y2={NODES[b].cy}
+              stroke="#2f8f73"
+              strokeWidth="0.7"
+            />
+          ))}
+        </g>
 
-        {/* Molecular network nodes */}
         {NODES.map((n, i) => (
-          <g key={i}>
+          <g key={i} filter="url(#nodeGlow)">
             <circle
-              cx={n.cx}
-              cy={n.cy}
-              r={n.r + 4}
-              fill="#2f8f73"
-              opacity="0.05"
-              filter="url(#softGlow)"
+              cx={n.cx} cy={n.cy} r={n.r + 6}
+              fill="#2f8f73" opacity="0.04"
             />
             <circle
-              cx={n.cx}
-              cy={n.cy}
-              r={n.r}
+              cx={n.cx} cy={n.cy} r={n.r}
               fill="none"
               stroke="#2f8f73"
               strokeWidth="1"
-              opacity="0.2"
+              opacity="0.22"
               style={{
-                animation: `nodePulse ${4 + (i % 3)}s ease-in-out infinite`,
-                animationDelay: `${(i * 0.4).toFixed(1)}s`,
+                animation: `nodePulse ${3.5 + (i % 4) * 0.7}s ease-in-out infinite`,
+                animationDelay: `${(i * 0.35).toFixed(2)}s`,
               }}
             />
           </g>
         ))}
-
-        {/* Subtle horizontal scan line */}
-        <line
-          x1="0" y1="0" x2="900" y2="0"
-          stroke="#2f8f73"
-          strokeWidth="0.5"
-          opacity="0.15"
-          style={{ animation: "scanLine 12s linear infinite" }}
-        />
       </svg>
 
       <style>{`
-        @keyframes helixDrift {
+        @keyframes helixFloat {
           0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-18px); }
+          50% { transform: translateY(-14px); }
         }
         @keyframes nodePulse {
-          0%, 100% { opacity: 0.18; r: var(--r, 4); }
-          50% { opacity: 0.35; }
-        }
-        @keyframes scanLine {
-          0% { transform: translateY(-10px); opacity: 0; }
-          5% { opacity: 0.15; }
-          95% { opacity: 0.1; }
-          100% { transform: translateY(1010px); opacity: 0; }
+          0%, 100% { opacity: 0.18; }
+          50% { opacity: 0.38; }
         }
       `}</style>
     </div>
