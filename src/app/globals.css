@@ -3,26 +3,5 @@
 @tailwind utilities;
 
 body {
-  background:
-    radial-gradient(circle at 10% 10%, rgba(93, 195, 145, 0.18), transparent 28%),
-    radial-gradient(circle at 90% 8%, rgba(47, 143, 115, 0.14), transparent 32%),
-    #f7fbf8;
-}
-
-.genes-bg {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.22;
-  background-image:
-    radial-gradient(circle, #2f8f73 2px, transparent 3px),
-    linear-gradient(115deg, transparent 48%, #2f8f73 49%, #2f8f73 51%, transparent 52%);
-  background-size: 80px 80px, 140px 140px;
-  animation: genes-drift 18s linear infinite;
-}
-
-@keyframes genes-drift {
-  to {
-    transform: translate3d(-80px, 80px, 0);
-  }
+  background: #f2faf6;
 }

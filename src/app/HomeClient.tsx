@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
 import { useCms } from "@/components/CmsProvider";
+import { GeneticBackground } from "@/components/GeneticBackground";
 
 const cardLinks: Record<string, string> = {
   enfermedades: "/enfermedades",
@@ -16,7 +17,7 @@ export function HomeClient() {
 
   return (
     <div className="min-h-screen overflow-x-hidden">
-      <div className="genes-bg" aria-hidden="true" />
+      <GeneticBackground />
       <div className="mx-auto w-[min(1180px,calc(100%-32px))]">
         <SiteHeader />
         <main className="grid items-center gap-7 py-9 lg:grid-cols-[1.1fr_1fr]">
