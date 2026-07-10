@@ -15,61 +15,63 @@ export function HomeClient() {
   const { site } = useCms();
 
   return (
-    <div className="relative z-10 min-h-screen overflow-x-hidden">
+    <div className="relative min-h-screen overflow-x-hidden">
       <div className="mx-auto w-[min(1180px,calc(100%-32px))]">
         <SiteHeader />
 
         <main className="grid items-center gap-8 py-10 lg:grid-cols-[1.15fr_1fr]">
 
-          {/* Hero */}
-          <section className="rounded-[32px] border border-white/70 bg-white p-8 shadow-[0_8px_40px_rgba(26,107,80,0.09)] sm:p-12">
-            <span className="inline-flex items-center gap-2 rounded-full bg-[#e8f5ee] px-4 py-2 text-sm font-bold tracking-wide text-[#1a6b50]">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#3ca878]" />
+          {/* ── Hero card ── */}
+          <section className="glass rounded-[32px] p-8 sm:p-12">
+            <span className="inline-flex items-center gap-2 rounded-full border border-green-400/25 bg-green-400/10 px-4 py-2 text-sm font-bold tracking-wide text-green-300">
+              <span className="h-1.5 w-1.5 rounded-full bg-green-400" />
               Un refugio para familias extraordinarias
             </span>
 
-            <h1 className="mt-7 text-[clamp(44px,7vw,70px)] font-black leading-[0.93] tracking-tight text-[#0e3d2f]">
-              Neuro<span className="text-[#1a6b50]">pGen</span>
+            <h1 className="mt-7 text-[clamp(44px,7vw,70px)] font-black leading-[0.93] tracking-tight text-white">
+              Neuro<span className="text-green-400">pGen</span>
             </h1>
 
-            <h2 className="mt-4 text-[clamp(18px,2.4vw,26px)] font-semibold leading-snug text-[#1a6b50]/80">
+            <h2 className="mt-4 text-[clamp(17px,2.2vw,24px)] font-semibold leading-snug text-white/70">
               Conectando la genética, el neurodesarrollo y las familias.
             </h2>
 
-            <p className="mt-5 max-w-[52ch] text-[17px] leading-relaxed text-[#4a6058]">
-              NeuropGen acerca información confiable, clara y humana sobre genética y neuropsicología a pacientes, familias y profesionales de salud.
+            <p className="mt-5 max-w-[52ch] text-[16px] leading-relaxed text-white/55">
+              NeuropGen acerca información confiable, clara y humana sobre genética y
+              neuropsicología a pacientes, familias y profesionales de salud.
             </p>
 
-            <blockquote className="mt-8 rounded-2xl bg-gradient-to-br from-[#0e3d2f] to-[#1a6b50] p-6 text-[15px] font-medium leading-relaxed text-white/90 shadow-[0_12px_36px_rgba(14,61,47,0.28)]">
-              <span className="mb-2 block text-[28px] leading-none text-[#a8dfc4]/60">&ldquo;</span>
-              Cuando llega un diagnóstico, también puede empezar un camino acompañado, con palabras simples y pasos posibles.
-              <span className="block text-right text-[28px] leading-none text-[#a8dfc4]/60">&rdquo;</span>
+            <blockquote className="mt-8 rounded-2xl border border-green-500/20 bg-green-500/10 p-6 text-[15px] font-medium leading-relaxed text-white/80">
+              <span className="mb-1 block text-2xl leading-none text-green-400/50">&ldquo;</span>
+              Cuando llega un diagnóstico, también puede empezar un camino acompañado,
+              con palabras simples y pasos posibles.
+              <span className="block text-right text-2xl leading-none text-green-400/50">&rdquo;</span>
             </blockquote>
           </section>
 
-          {/* Módulos */}
+          {/* ── Módulos ── */}
           <section aria-label="Módulos principales" className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {site.sections.map((section, i) => (
+            {site.sections.map((section) => (
               <article
                 key={section.id}
-                className="card-hover flex min-h-[268px] flex-col justify-between rounded-[28px] border border-[#d0eedd]/60 bg-white p-6 shadow-[0_4px_20px_rgba(26,107,80,0.07)]"
-                style={{ animationDelay: `${i * 80}ms` }}
+                className="glass glass-hover flex min-h-[268px] flex-col justify-between rounded-[28px] p-6"
               >
                 <div>
-                  <span className="grid h-[50px] w-[50px] place-items-center rounded-2xl bg-[#e8f5ee] text-[22px] shadow-inner">
+                  <span className="grid h-[50px] w-[50px] place-items-center rounded-2xl border border-white/10 bg-white/08 text-[22px]"
+                    style={{ background: "rgba(255,255,255,0.08)" }}>
                     {section.icon}
                   </span>
-                  <h3 className="mt-5 text-[20px] font-extrabold leading-tight text-[#0e3d2f]">
+                  <h3 className="mt-5 text-[19px] font-extrabold leading-tight text-white">
                     {section.title}
                   </h3>
-                  <p className="mt-2 text-[14px] leading-relaxed text-[#5a7268]">
+                  <p className="mt-2 text-[14px] leading-relaxed text-white/55">
                     {section.summary}
                   </p>
                 </div>
 
                 <Link
                   href={cardLinks[section.id] || "/"}
-                  className="mt-5 inline-flex w-fit items-center gap-2 rounded-xl bg-[#1a6b50] px-5 py-2.5 text-[14px] font-bold text-white shadow-sm transition-colors duration-200 hover:bg-[#0e3d2f]"
+                  className="mt-5 inline-flex w-fit items-center gap-2 rounded-xl bg-green-500 px-5 py-2.5 text-[14px] font-bold text-white shadow-lg shadow-green-900/40 transition-colors duration-200 hover:bg-green-400"
                 >
                   Acceder
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
@@ -81,10 +83,11 @@ export function HomeClient() {
           </section>
         </main>
 
-        <footer className="mb-2 rounded-2xl bg-[#0e3d2f] px-6 py-5 text-center text-[13px] leading-relaxed text-white/70">
+        <footer className="mb-4 rounded-2xl border border-white/08 bg-white/[0.04] px-6 py-5 text-center text-[13px] leading-relaxed text-white/40"
+          style={{ borderColor: "rgba(255,255,255,0.08)" }}>
           Neuropsicólogo Andrés Escalera Páez · Dra. Belen Prieto Corona · Dra. Sulema Rojas · Dra. Julieta Moreno · Dr. Edgar Ricardez
           <br />
-          <span className="text-white/40">© {new Date().getFullYear()} Neurapeuta — Todos los derechos reservados</span>
+          <span className="text-white/25">© {new Date().getFullYear()} Neurapeuta — Todos los derechos reservados</span>
         </footer>
       </div>
     </div>
