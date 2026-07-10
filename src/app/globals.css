@@ -2,6 +2,74 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --glow-1: rgba(60, 168, 120, 0.18);
+  --glow-2: rgba(26, 107, 80, 0.13);
+  --glow-3: rgba(168, 223, 196, 0.22);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  background: #f2faf6;
+  background-color: #f3f9f6;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Ambient glow orbs — sin SVG, puro CSS */
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::before {
+  width: clamp(480px, 60vw, 900px);
+  height: clamp(480px, 60vw, 900px);
+  top: -20%;
+  left: -15%;
+  background: radial-gradient(circle, var(--glow-1) 0%, var(--glow-3) 40%, transparent 70%);
+  animation: breathe-a 18s ease-in-out infinite alternate;
+}
+
+body::after {
+  width: clamp(380px, 50vw, 700px);
+  height: clamp(380px, 50vw, 700px);
+  bottom: -18%;
+  right: -12%;
+  background: radial-gradient(circle, var(--glow-2) 0%, var(--glow-1) 45%, transparent 70%);
+  animation: breathe-b 22s ease-in-out infinite alternate;
+}
+
+@keyframes breathe-a {
+  0%   { transform: scale(1)    translate(0,    0);   opacity: 0.85; }
+  100% { transform: scale(1.12) translate(3vw, 3vh);  opacity: 1;    }
+}
+
+@keyframes breathe-b {
+  0%   { transform: scale(1)    translate(0,     0);    opacity: 0.9; }
+  100% { transform: scale(1.09) translate(-3vw, -3vh); opacity: 1;   }
+}
+
+/* Tarjetas elegantes */
+.card-hover {
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 48px rgba(26, 107, 80, 0.13), 0 2px 8px rgba(26, 107, 80, 0.07);
+  border-color: rgba(60, 168, 120, 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::before, body::after { animation: none; }
+  .card-hover:hover { transform: none; }
 }
