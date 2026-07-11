@@ -104,6 +104,24 @@ body {
   font-style: italic;
 }
 
+/* Enlace "volver" en PageShell */
+.back-link {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-2);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  transition: color .15s, background .15s;
+}
+.back-link:hover {
+  color: var(--green);
+  background: var(--green-light);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .apple-card:hover { transform: none; }
   .btn-green:hover { transform: none; }
