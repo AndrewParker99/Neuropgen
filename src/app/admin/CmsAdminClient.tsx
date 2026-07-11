@@ -11,591 +11,608 @@ import { slugify, sortedBlocks, sortedSections, sortedSubtopics, sortedTopics } 
 import { uploadAsset } from "@/lib/content-store";
 import { CmsBlock, CmsBlockType, CmsSection, CmsSite, CmsSubtopic, CmsTopic, PublishStatus } from "@/types/cms";
 
-type Level = "topics" | "subtopics";
-
-const blockTypes: { id: CmsBlockType; label: string }[] = [
-  { id: "text", label: "Texto" },
-  { id: "image", label: "Imagen" },
-  { id: "video", label: "Video" },
-  { id: "pdf", label: "PDF" },
-  { id: "link", label: "Enlace" },
-  { id: "note", label: "Cita o nota" }
+/* ── Tipos de bloque con descripción visual ── */
+const BLOCK_TYPES: { id: CmsBlockType; emoji: string; label: string; hint: string }[] = [
+  { id: "text",  emoji: "📝", label: "Texto",       hint: "Párrafo o explicación larga" },
+  { id: "note",  emoji: "💬", label: "Cita / Nota", hint: "Frase destacada o consejo" },
+  { id: "image", emoji: "🖼️", label: "Imagen",      hint: "Foto, diagrama o ilustración" },
+  { id: "video", emoji: "▶️", label: "Video",       hint: "YouTube u otro enlace de video" },
+  { id: "pdf",   emoji: "📄", label: "PDF",         hint: "Documento descargable" },
+  { id: "link",  emoji: "🔗", label: "Enlace",      hint: "Recurso o página externa" },
 ];
 
+/* ─────────────────────────────── */
 export function CmsAdminClient() {
   const { site, setSite } = useCms();
-  const [session, setSession] = useState<Session | null>(null);
-  const [demoUnlocked, setDemoUnlocked] = useState(!hasSupabaseConfig);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [sectionId, setSectionId] = useState<CmsSection["id"]>("enfermedades");
-  const [topicId, setTopicId] = useState("");
+  const [session,       setSession]       = useState<Session | null>(null);
+  const [demoUnlocked,  setDemoUnlocked]  = useState(!hasSupabaseConfig);
+  const [email,         setEmail]         = useState("");
+  const [password,      setPassword]      = useState("");
+  const [loginError,    setLoginError]    = useState("");
+
+  /* Selección actual */
+  const [sectionId,  setSectionId]  = useState<CmsSection["id"]>("enfermedades");
+  const [topicId,    setTopicId]    = useState("");
   const [subtopicId, setSubtopicId] = useState("");
-  const [level, setLevel] = useState<Level>("topics");
 
   useEffect(() => {
     if (!supabase) return;
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, next) => setSession(next));
-    return () => listener.subscription.unsubscribe();
+    const { data: l } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+    return () => l.subscription.unsubscribe();
   }, []);
 
-  const sections = useMemo(() => sortedSections(site.sections), [site]);
-  const section = sections.find((item) => item.id === sectionId) || sections[0];
-  const topics = useMemo(() => (section ? sortedTopics(section.topics) : []), [section]);
-  const topic = topics.find((item) => item.id === topicId) || topics[0];
+  const sections  = useMemo(() => sortedSections(site.sections), [site]);
+  const section   = sections.find((s) => s.id === sectionId) || sections[0];
+  const topics    = useMemo(() => (section ? sortedTopics(section.topics) : []), [section]);
+  const topic     = topics.find((t) => t.id === topicId) || null;
   const subtopics = useMemo(() => (topic ? sortedSubtopics(topic.subtopics) : []), [topic]);
-  const subtopic = subtopics.find((item) => item.id === subtopicId) || subtopics[0];
-
-  const stats = useMemo(
-    () => ({
-      sections: site.sections.length,
-      topics: site.sections.reduce((total, item) => total + item.topics.length, 0),
-      subtopics: site.sections.reduce((total, item) => total + item.topics.reduce((inner, t) => inner + t.subtopics.length, 0), 0),
-      blocks: site.sections.reduce(
-        (total, item) => total + item.topics.reduce((inner, t) => inner + t.subtopics.reduce((deep, s) => deep + s.blocks.length, 0), 0),
-        0
-      )
-    }),
-    [site]
-  );
+  const subtopic  = subtopics.find((s) => s.id === subtopicId) || null;
 
   const unlocked = Boolean(session || demoUnlocked);
 
-  async function login(event: FormEvent) {
-    event.preventDefault();
-    setError("");
-    if (!hasSupabaseConfig || !supabase) {
-      setDemoUnlocked(true);
-      return;
-    }
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-    if (signInError) {
-      setError("No pudimos iniciar sesión. Revisa correo y contraseña.");
-    }
+  async function login(e: FormEvent) {
+    e.preventDefault();
+    setLoginError("");
+    if (!hasSupabaseConfig || !supabase) { setDemoUnlocked(true); return; }
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) setLoginError("Correo o contraseña incorrectos.");
   }
 
   async function updateSection(next: CmsSection) {
-    await setSite({ ...site, sections: site.sections.map((item) => (item.id === next.id ? next : item)) });
+    await setSite({ ...site, sections: site.sections.map((s) => (s.id === next.id ? next : s)) });
   }
 
   function createTopic() {
     if (!section) return;
-    const order = section.topics.length + 1;
-    const newTopic: CmsTopic = {
-      id: crypto.randomUUID(),
-      slug: slugify(`nuevo-tema-${order}`),
-      title: `Nuevo tema ${order}`,
-      summary: "Escribe aquí la descripción breve del tema.",
-      order,
-      status: "draft",
-      subtopics: []
+    const t: CmsTopic = {
+      id: crypto.randomUUID(), slug: slugify(`nuevo-tema-${section.topics.length + 1}`),
+      title: "Nuevo tema", summary: "Descripción breve del tema.",
+      order: section.topics.length + 1, status: "draft", subtopics: [],
     };
-    updateSection({ ...section, topics: [...section.topics, newTopic] });
-    setTopicId(newTopic.id);
-    setLevel("topics");
+    updateSection({ ...section, topics: [...section.topics, t] });
+    setTopicId(t.id); setSubtopicId("");
   }
 
   function createSubtopic() {
     if (!section || !topic) return;
-    const order = topic.subtopics.length + 1;
-    const newSubtopic: CmsSubtopic = {
-      id: crypto.randomUUID(),
-      slug: slugify(`nuevo-subtema-${order}`),
-      title: `Nuevo subtema ${order}`,
-      order,
-      status: "draft",
-      blocks: []
+    const st: CmsSubtopic = {
+      id: crypto.randomUUID(), slug: slugify(`nuevo-subtema-${topic.subtopics.length + 1}`),
+      title: "Nuevo subtema", order: topic.subtopics.length + 1, status: "draft", blocks: [],
     };
-    const nextTopic = { ...topic, subtopics: [...topic.subtopics, newSubtopic] };
-    updateSection({ ...section, topics: section.topics.map((item) => (item.id === topic.id ? nextTopic : item)) });
-    setSubtopicId(newSubtopic.id);
-    setLevel("subtopics");
+    const nt = { ...topic, subtopics: [...topic.subtopics, st] };
+    updateSection({ ...section, topics: section.topics.map((t2) => (t2.id === topic.id ? nt : t2)) });
+    setSubtopicId(st.id);
   }
 
   function saveTopic(next: CmsTopic) {
     if (!section) return;
-    updateSection({ ...section, topics: section.topics.map((item) => (item.id === next.id ? next : item)) });
+    updateSection({ ...section, topics: section.topics.map((t) => (t.id === next.id ? next : t)) });
   }
 
   function deleteTopic(id: string) {
     if (!section) return;
-    updateSection({ ...section, topics: section.topics.filter((item) => item.id !== id) });
-    if (topicId === id) setTopicId("");
-  }
-
-  function toggleTopicStatus(item: CmsTopic) {
-    saveTopic({ ...item, status: item.status === "published" ? "draft" : "published" });
+    updateSection({ ...section, topics: section.topics.filter((t) => t.id !== id) });
+    if (topicId === id) { setTopicId(""); setSubtopicId(""); }
   }
 
   function saveSubtopic(next: CmsSubtopic) {
     if (!section || !topic) return;
-    const nextTopic = { ...topic, subtopics: topic.subtopics.map((item) => (item.id === next.id ? next : item)) };
-    updateSection({ ...section, topics: section.topics.map((item) => (item.id === topic.id ? nextTopic : item)) });
+    const nt = { ...topic, subtopics: topic.subtopics.map((s) => (s.id === next.id ? next : s)) };
+    updateSection({ ...section, topics: section.topics.map((t) => (t.id === topic.id ? nt : t)) });
   }
 
   function deleteSubtopic(id: string) {
     if (!section || !topic) return;
-    const nextTopic = { ...topic, subtopics: topic.subtopics.filter((item) => item.id !== id) };
-    updateSection({ ...section, topics: section.topics.map((item) => (item.id === topic.id ? nextTopic : item)) });
+    const nt = { ...topic, subtopics: topic.subtopics.filter((s) => s.id !== id) };
+    updateSection({ ...section, topics: section.topics.map((t) => (t.id === topic.id ? nt : t)) });
     if (subtopicId === id) setSubtopicId("");
   }
 
-  function toggleSubtopicStatus(item: CmsSubtopic) {
-    saveSubtopic({ ...item, status: item.status === "published" ? "draft" : "published" });
-  }
+  /* ── LOGIN ── */
+  if (!unlocked) return (
+    <div style={{ maxWidth: 420, margin: "60px auto", background: "var(--surface)", borderRadius: 20, padding: 36, boxShadow: "var(--shadow-card)" }}>
+      <h1 style={{ margin: "0 0 6px", fontSize: 24, fontWeight: 800, color: "var(--text-1)" }}>Acceso al editor</h1>
+      <p style={{ margin: "0 0 28px", fontSize: 14, color: "var(--text-2)" }}>Ingresa con tu cuenta de administrador.</p>
+      <form onSubmit={login} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <AdminField label="Correo electrónico" value={email} onChange={setEmail} type="email" />
+        <AdminField label="Contraseña" value={password} onChange={setPassword} type="password" />
+        {loginError && <p style={{ margin: 0, padding: "10px 14px", background: "#fef2f2", border: "1px solid #fca5a5", borderRadius: 10, fontSize: 13, color: "#dc2626" }}>{loginError}</p>}
+        <button type="submit" style={{ padding: "13px", background: "var(--green)", color: "#fff", border: "none", borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+          Ingresar
+        </button>
+      </form>
+    </div>
+  );
 
-  if (!unlocked) {
-    return (
-      <div className="mx-auto max-w-md rounded-3xl border border-stone-200 bg-white p-7 shadow-soft">
-        <h1 className="text-2xl font-extrabold text-clinical-700">Panel administrador</h1>
-        <p className="mt-2 text-stone-500">Acceso protegido para administrar toda la jerarquía de contenido.</p>
-        <form onSubmit={login} className="mt-6 space-y-4">
-          <Field label="Correo" value={email} onChange={setEmail} type="email" />
-          <Field label="Contraseña" value={password} onChange={setPassword} type="password" />
-          {error && <p className="rounded-2xl bg-red-50 p-3 text-sm font-bold text-red-700">{error}</p>}
-          <button className="w-full rounded-2xl bg-clinical-500 px-4 py-3 font-bold text-white hover:bg-clinical-600">Ingresar</button>
-        </form>
-      </div>
-    );
-  }
-
+  /* ── PANEL PRINCIPAL ── */
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 rounded-3xl border border-stone-200 bg-white p-6 shadow-soft md:flex-row md:items-center md:justify-between">
+    <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+
+      {/* Barra top */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 12 }}>
         <div>
-          <h1 className="text-2xl font-extrabold text-clinical-700">CMS NeuropGen</h1>
-          <p className="mt-1 text-stone-500">Administra Sección → Tema → Subtema → Bloques sin tocar código.</p>
-          <p className="mt-1 text-sm font-bold text-emerald-700">
-            {hasSupabaseConfig ? "Conectado a Supabase." : "Modo demo: guarda en este navegador. Configura Supabase para guardar en la nube."}
+          <h1 style={{ margin: 0, fontSize: 26, fontWeight: 800, color: "var(--text-1)" }}>Editor de contenido</h1>
+          <p style={{ margin: "4px 0 0", fontSize: 14, color: "var(--text-2)" }}>
+            {hasSupabaseConfig ? "✓ Guardando en la nube (Supabase)" : "⚠️ Modo demo — los cambios se guardan solo en este navegador"}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={async () => {
-              resetCmsDemo();
-              await setSite(cmsSeed);
-            }}
-            className="inline-flex items-center gap-2 rounded-2xl border border-stone-200 px-4 py-2 font-bold text-stone-700 hover:bg-stone-50"
-          >
-            <RefreshCw className="h-4 w-4" /> Restaurar demo
+        <div style={{ display: "flex", gap: 8 }}>
+          <button onClick={async () => { resetCmsDemo(); await setSite(cmsSeed); }}
+            style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 16px", border: "1.5px solid var(--border)", borderRadius: 10, background: "var(--surface)", fontSize: 13, fontWeight: 600, cursor: "pointer", color: "var(--text-2)" }}>
+            <RefreshCw style={{ width: 14, height: 14 }} /> Restaurar demo
           </button>
-          <button
-            onClick={() => (supabase ? supabase.auth.signOut() : setDemoUnlocked(false))}
-            className="inline-flex items-center gap-2 rounded-2xl border border-stone-200 px-4 py-2 font-bold text-stone-700 hover:bg-stone-50"
-          >
-            <LogOut className="h-4 w-4" /> Salir
+          <button onClick={() => supabase ? supabase.auth.signOut() : setDemoUnlocked(false)}
+            style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 16px", border: "1.5px solid var(--border)", borderRadius: 10, background: "var(--surface)", fontSize: 13, fontWeight: 600, cursor: "pointer", color: "var(--text-2)" }}>
+            <LogOut style={{ width: 14, height: 14 }} /> Salir
           </button>
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Secciones" value={stats.sections} />
-        <Stat label="Temas" value={stats.topics} />
-        <Stat label="Subtemas" value={stats.subtopics} />
-        <Stat label="Bloques" value={stats.blocks} />
-      </div>
+      {/* Indicador de pasos */}
+      <StepBar step={subtopic ? 4 : topic ? 3 : 2} />
 
-      <div className="grid gap-5 lg:grid-cols-[280px_1fr]">
-        <aside className="rounded-3xl border border-stone-200 bg-white p-4 shadow-soft">
-          <div className="grid gap-2">
-            {sections.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => {
-                  setSectionId(item.id);
-                  setTopicId("");
-                  setSubtopicId("");
-                  setLevel("topics");
-                }}
-                className={`rounded-2xl px-3.5 py-3 text-left font-extrabold ${
-                  section?.id === item.id ? "bg-clinical-500 text-white" : "bg-clinical-50 text-clinical-600 hover:bg-clinical-100"
-                }`}
-              >
-                {item.icon} {item.title}
-              </button>
-            ))}
+      {/* Columnas */}
+      <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", gap: 20, marginTop: 24, alignItems: "start" }}>
+
+        {/* ① Secciones */}
+        <aside>
+          <StepLabel n={1} label="Sección" />
+          <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 10 }}>
+            {sections.map((s) => {
+              const active = section?.id === s.id;
+              return (
+                <button key={s.id} onClick={() => { setSectionId(s.id); setTopicId(""); setSubtopicId(""); }}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 10,
+                    padding: "10px 14px", borderRadius: 12, border: "none", cursor: "pointer", textAlign: "left",
+                    background: active ? "var(--green)" : "var(--surface)",
+                    color:      active ? "#fff" : "var(--text-1)",
+                    fontWeight: active ? 700 : 500, fontSize: 14,
+                    boxShadow: "var(--shadow-card)",
+                    borderLeft: active ? "none" : "3px solid transparent",
+                    transition: "all .15s",
+                  }}>
+                  <span style={{ fontSize: 18 }}>{s.icon}</span>
+                  {s.title}
+                </button>
+              );
+            })}
           </div>
         </aside>
 
-        <section className="rounded-3xl border border-stone-200 bg-white p-5 shadow-soft">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <strong className="text-clinical-700">Biblioteca: {section?.title}</strong>
-              <p className="mt-1 text-stone-500">Crea, ordena, publica o desactiva temas y subtemas.</p>
-            </div>
-            <div className="flex gap-2">
-              <button onClick={createSubtopic} disabled={!topic} className="rounded-2xl bg-clinical-50 px-4 py-2 font-bold text-clinical-700 disabled:opacity-40">
-                Crear subtema
-              </button>
-              <button onClick={createTopic} className="rounded-2xl bg-clinical-500 px-4 py-2 font-bold text-white hover:bg-clinical-600">
-                Crear tema
-              </button>
-            </div>
-          </div>
+        {/* ② Temas + ③ Subtemas + ④ Bloques */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
-          <div className="mt-4 grid gap-3">
-            {topics.map((item) => (
-              <article key={item.id} className="rounded-2xl border border-stone-200 bg-[#f7fbf8] p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h3 className="text-xl font-extrabold text-[#24312d]">{item.title}</h3>
-                    <p className="mt-1 text-stone-500">
-                      {item.subtopics.length} subtema{item.subtopics.length === 1 ? "" : "s"} · Orden {item.order}
-                    </p>
-                    <p className="mt-1 text-stone-500">{item.summary}</p>
+          {/* ② Temas */}
+          <Panel>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
+              <StepLabel n={2} label={`Temas de "${section?.title}"`} />
+              <button onClick={createTopic} style={btnGreen}>
+                <Plus style={{ width: 14, height: 14 }} /> Nuevo tema
+              </button>
+            </div>
+
+            {topics.length === 0 && <p style={{ color: "var(--text-3)", fontSize: 14 }}>No hay temas. Crea el primero.</p>}
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {topics.map((t) => {
+                const active = topic?.id === t.id;
+                return (
+                  <div key={t.id} style={{
+                    display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
+                    padding: "12px 16px", borderRadius: 12,
+                    background: active ? "var(--green-light)" : "var(--bg)",
+                    border: `1.5px solid ${active ? "var(--green)" : "var(--border)"}`,
+                    flexWrap: "wrap",
+                  }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{ fontWeight: 700, fontSize: 15, color: active ? "var(--green)" : "var(--text-1)" }}>{t.title}</span>
+                      <span style={{ marginLeft: 10, fontSize: 11, padding: "2px 8px", borderRadius: 980, background: t.status === "published" ? "#dcfce7" : "#f3f4f6", color: t.status === "published" ? "#15803d" : "#6b7280", fontWeight: 600 }}>
+                        {t.status === "published" ? "Publicado" : "Borrador"}
+                      </span>
+                      <p style={{ margin: "3px 0 0", fontSize: 13, color: "var(--text-3)" }}>{t.subtopics.length} subtema{t.subtopics.length !== 1 ? "s" : ""}</p>
+                    </div>
+                    <div style={{ display: "flex", gap: 6 }}>
+                      <SmallBtn onClick={() => { setTopicId(t.id); setSubtopicId(""); }}>✏️ Editar</SmallBtn>
+                      <SmallBtn danger onClick={() => deleteTopic(t.id)}>🗑️</SmallBtn>
+                    </div>
                   </div>
-                  <span className="whitespace-nowrap rounded-full bg-clinical-100 px-2.5 py-1 text-xs font-extrabold text-clinical-700">
-                    {item.status === "published" ? "Publicado" : "Borrador"}
-                  </span>
-                </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <button
-                    onClick={() => {
-                      setTopicId(item.id);
-                      setSubtopicId("");
-                      setLevel("topics");
-                    }}
-                    className="rounded-2xl bg-clinical-50 px-3.5 py-2 font-bold text-clinical-700 hover:bg-clinical-100"
-                  >
-                    Editar
-                  </button>
-                  <button onClick={() => toggleTopicStatus(item)} className="rounded-2xl bg-clinical-50 px-3.5 py-2 font-bold text-clinical-700 hover:bg-clinical-100">
-                    {item.status === "published" ? "Pasar a borrador" : "Publicar"}
-                  </button>
-                  <button onClick={() => deleteTopic(item.id)} className="rounded-2xl bg-red-50 px-3.5 py-2 font-bold text-red-600 hover:bg-red-100">
-                    Eliminar
-                  </button>
-                </div>
-              </article>
-            ))}
-            {topics.length === 0 && <p className="text-stone-400">Aún no hay temas en esta sección.</p>}
-          </div>
+                );
+              })}
+            </div>
 
+            {/* Editor de tema inline */}
+            {topic && (
+              <TopicEditor key={topic.id} topic={topic} onSave={saveTopic} />
+            )}
+          </Panel>
+
+          {/* ③ Subtemas */}
           {topic && (
-            <TopicEditor
-              key={topic.id}
-              topic={topic}
-              onSave={saveTopic}
-              subtopics={subtopics}
-              selectedSubtopicId={subtopic?.id}
-              onSelectSubtopic={setSubtopicId}
-              onSaveSubtopic={saveSubtopic}
-              onDeleteSubtopic={deleteSubtopic}
-              onToggleSubtopicStatus={toggleSubtopicStatus}
-            />
-          )}
-        </section>
-      </div>
-    </div>
-  );
-}
-
-function TopicEditor({
-  topic,
-  onSave,
-  subtopics,
-  selectedSubtopicId,
-  onSelectSubtopic,
-  onSaveSubtopic,
-  onDeleteSubtopic,
-  onToggleSubtopicStatus
-}: {
-  topic: CmsTopic;
-  onSave: (topic: CmsTopic) => void;
-  subtopics: CmsSubtopic[];
-  selectedSubtopicId?: string;
-  onSelectSubtopic: (id: string) => void;
-  onSaveSubtopic: (subtopic: CmsSubtopic) => void;
-  onDeleteSubtopic: (id: string) => void;
-  onToggleSubtopicStatus: (subtopic: CmsSubtopic) => void;
-}) {
-  const [title, setTitle] = useState(topic.title);
-  const [summary, setSummary] = useState(topic.summary);
-  const [order, setOrder] = useState(topic.order);
-  const [status, setStatus] = useState<PublishStatus>(topic.status);
-
-  const selectedSubtopic = subtopics.find((item) => item.id === selectedSubtopicId) || subtopics[0];
-
-  return (
-    <div className="mt-6 border-t border-stone-200 pt-5">
-      <h2 className="text-xl font-extrabold text-clinical-700">Editor de tema</h2>
-      <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_160px_160px]">
-        <Field label="Título del tema" value={title} onChange={setTitle} />
-        <NumberField label="Orden" value={order} onChange={setOrder} />
-        <SelectField
-          label="Estado"
-          value={status}
-          onChange={(value) => setStatus(value as PublishStatus)}
-          options={[
-            { value: "published", label: "Publicado" },
-            { value: "draft", label: "Borrador" }
-          ]}
-        />
-      </div>
-      <Area label="Descripción breve" value={summary} onChange={setSummary} />
-      <button
-        onClick={() => onSave({ ...topic, title: title.trim() || "Tema sin título", summary, order: Number(order) || 1, status })}
-        className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-clinical-500 px-4 py-3 font-bold text-white hover:bg-clinical-600"
-      >
-        Guardar tema
-      </button>
-
-      <div className="mt-6 rounded-2xl border border-stone-200 bg-clinical-50 p-4">
-        <h3 className="font-extrabold text-clinical-700">Subtemas</h3>
-        <div className="mt-3 grid gap-2">
-          {subtopics.map((item) => (
-            <div key={item.id} className="flex items-center justify-between gap-3 rounded-xl border border-stone-200 bg-white p-3">
-              <button onClick={() => onSelectSubtopic(item.id)} className="text-left font-bold text-clinical-700">
-                {item.title} <span className="text-xs text-stone-400">({item.status === "published" ? "Publicado" : "Borrador"})</span>
-              </button>
-              <div className="flex gap-2">
-                <button onClick={() => onToggleSubtopicStatus(item)} className="rounded-xl border border-stone-200 px-2.5 py-1.5 text-xs font-bold text-stone-600 hover:bg-stone-50">
-                  {item.status === "published" ? "A borrador" : "Publicar"}
-                </button>
-                <button onClick={() => onDeleteSubtopic(item.id)} className="rounded-xl border border-red-100 p-1.5 text-red-600 hover:bg-red-50" aria-label="Eliminar subtema">
-                  <Trash2 className="h-4 w-4" />
+            <Panel>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
+                <StepLabel n={3} label={`Subtemas de "${topic.title}"`} />
+                <button onClick={createSubtopic} style={btnGreen}>
+                  <Plus style={{ width: 14, height: 14 }} /> Nuevo subtema
                 </button>
               </div>
-            </div>
-          ))}
-          {subtopics.length === 0 && <p className="text-sm text-stone-400">Aún no hay subtemas.</p>}
+
+              {subtopics.length === 0 && <p style={{ color: "var(--text-3)", fontSize: 14 }}>No hay subtemas. Crea el primero.</p>}
+
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {subtopics.map((st) => {
+                  const active = subtopic?.id === st.id;
+                  return (
+                    <div key={st.id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <button onClick={() => setSubtopicId(st.id)} style={{
+                        padding: "7px 16px", borderRadius: 980, border: "none", cursor: "pointer",
+                        background: active ? "var(--green)" : "var(--surface)",
+                        color: active ? "#fff" : "var(--text-1)",
+                        fontWeight: active ? 700 : 500, fontSize: 14,
+                        boxShadow: "var(--shadow-card)",
+                        transition: "all .15s",
+                      }}>
+                        {st.title}
+                        <span style={{ marginLeft: 8, fontSize: 10, opacity: 0.7 }}>{st.status === "published" ? "✓" : "borrador"}</span>
+                      </button>
+                      <button onClick={() => deleteSubtopic(st.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "#dc2626", fontSize: 16, padding: "4px" }} title="Eliminar">×</button>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {subtopic && (
+                <SubtopicEditor key={subtopic.id} subtopic={subtopic} onSave={saveSubtopic} />
+              )}
+            </Panel>
+          )}
         </div>
       </div>
-
-      {selectedSubtopic && (
-        <SubtopicEditor key={selectedSubtopic.id} subtopic={selectedSubtopic} onSave={onSaveSubtopic} />
-      )}
     </div>
   );
 }
 
-function SubtopicEditor({ subtopic, onSave }: { subtopic: CmsSubtopic; onSave: (subtopic: CmsSubtopic) => void }) {
-  const [title, setTitle] = useState(subtopic.title);
-  const [status, setStatus] = useState<PublishStatus>(subtopic.status);
-  const [order, setOrder] = useState(subtopic.order);
-  const [blocks, setBlocks] = useState<CmsBlock[]>(subtopic.blocks);
-  const [selectedBlockId, setSelectedBlockId] = useState(subtopic.blocks[0]?.id);
+/* ─── Topic editor ── */
+function TopicEditor({ topic, onSave }: { topic: CmsTopic; onSave: (t: CmsTopic) => void }) {
+  const [title,  setTitle]  = useState(topic.title);
+  const [summary, setSummary] = useState(topic.summary);
+  const [status, setStatus] = useState<PublishStatus>(topic.status);
+  const [order,  setOrder]  = useState(topic.order);
+  const [saved,  setSaved]  = useState(false);
 
-  const selectedBlock = blocks.find((item) => item.id === selectedBlockId) || blocks[0];
+  function save() {
+    onSave({ ...topic, title: title.trim() || "Tema sin título", summary, order: Number(order) || 1, status });
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  }
+
+  return (
+    <div style={{ marginTop: 20, padding: 20, background: "var(--green-xlight)", borderRadius: 14, border: "1.5px solid rgba(26,143,94,.2)" }}>
+      <p style={{ margin: "0 0 14px", fontSize: 13, fontWeight: 700, color: "var(--green)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Editando tema</p>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 120px 140px", gap: 12, marginBottom: 12 }}>
+        <AdminField label="Título" value={title} onChange={setTitle} />
+        <AdminNumber label="Orden" value={order} onChange={setOrder} />
+        <AdminSelect label="Estado" value={status} onChange={(v) => setStatus(v as PublishStatus)} options={[{ value: "published", label: "✓ Publicado" }, { value: "draft", label: "Borrador" }]} />
+      </div>
+      <AdminArea label="Descripción breve (se muestra al paciente)" value={summary} onChange={setSummary} />
+      <button onClick={save} style={{ ...btnGreen, marginTop: 12 }}>
+        {saved ? "✓ Guardado" : "Guardar tema"}
+      </button>
+    </div>
+  );
+}
+
+/* ─── Subtopic editor ── */
+function SubtopicEditor({ subtopic, onSave }: { subtopic: CmsSubtopic; onSave: (s: CmsSubtopic) => void }) {
+  const [title,  setTitle]  = useState(subtopic.title);
+  const [status, setStatus] = useState<PublishStatus>(subtopic.status);
+  const [order,  setOrder]  = useState(subtopic.order);
+  const [blocks, setBlocks] = useState<CmsBlock[]>(subtopic.blocks);
+  const [selBlockId, setSelBlockId] = useState(subtopic.blocks[0]?.id ?? "");
+
+  const selBlock = blocks.find((b) => b.id === selBlockId) || blocks[0] || null;
 
   function commit(nextBlocks: CmsBlock[]) {
     setBlocks(nextBlocks);
     onSave({ ...subtopic, title: title.trim() || "Subtema sin título", status, order: Number(order) || 1, blocks: nextBlocks });
   }
 
-  function addBlock() {
-    const next: CmsBlock = { id: crypto.randomUUID(), type: "text", order: blocks.length + 1, title: "Nuevo bloque", text: "" };
-    const nextBlocks = [...blocks, next];
-    setSelectedBlockId(next.id);
-    commit(nextBlocks);
+  function addBlock(type: CmsBlockType) {
+    const b: CmsBlock = { id: crypto.randomUUID(), type, order: blocks.length + 1, title: "", text: "" };
+    const next = [...blocks, b];
+    setSelBlockId(b.id);
+    commit(next);
   }
 
-  function saveBlock(block: CmsBlock) {
-    commit(blocks.map((item) => (item.id === block.id ? block : item)));
-  }
-
+  function saveBlock(b: CmsBlock) { commit(blocks.map((x) => (x.id === b.id ? b : x))); }
   function deleteBlock(id: string) {
-    const nextBlocks = blocks.filter((item) => item.id !== id);
-    setSelectedBlockId(nextBlocks[0]?.id);
-    commit(nextBlocks);
+    const next = blocks.filter((b) => b.id !== id);
+    setSelBlockId(next[0]?.id ?? "");
+    commit(next);
   }
 
   return (
-    <div className="mt-6 rounded-2xl border border-stone-200 bg-white p-4">
-      <h3 className="font-extrabold text-clinical-700">Editando subtema: {subtopic.title}</h3>
-      <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_160px_160px]">
-        <Field label="Título del subtema" value={title} onChange={setTitle} />
-        <NumberField label="Orden" value={order} onChange={setOrder} />
-        <SelectField
-          label="Estado"
-          value={status}
-          onChange={(value) => setStatus(value as PublishStatus)}
-          options={[
-            { value: "published", label: "Publicado" },
-            { value: "draft", label: "Borrador" }
-          ]}
-        />
+    <div style={{ marginTop: 20, padding: 20, background: "var(--bg)", borderRadius: 14, border: "1.5px solid var(--border)" }}>
+      <StepLabel n={4} label={`Bloques de "${subtopic.title}"`} />
+
+      {/* Datos del subtema */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 120px 140px", gap: 12, margin: "14px 0" }}>
+        <AdminField label="Título del subtema" value={title} onChange={setTitle} />
+        <AdminNumber label="Orden" value={order} onChange={setOrder} />
+        <AdminSelect label="Estado" value={status} onChange={(v) => setStatus(v as PublishStatus)} options={[{ value: "published", label: "✓ Publicado" }, { value: "draft", label: "Borrador" }]} />
       </div>
-      <button
-        onClick={() => onSave({ ...subtopic, title: title.trim() || "Subtema sin título", status, order: Number(order) || 1, blocks })}
-        className="mt-3 rounded-2xl bg-clinical-500 px-4 py-2.5 font-bold text-white hover:bg-clinical-600"
-      >
+      <button onClick={() => onSave({ ...subtopic, title: title.trim() || "Subtema sin título", status, order: Number(order) || 1, blocks })}
+        style={{ ...btnGreen, marginBottom: 20 }}>
         Guardar subtema
       </button>
 
-      <div className="mt-5 grid gap-2">
-        {sortedBlocks(blocks).map((block) => (
-          <div key={block.id} className="grid grid-cols-[140px_minmax(0,1fr)_auto] items-center gap-2.5 rounded-2xl border border-dashed border-clinical-200 bg-[#fafffc] p-2.5">
-            <strong className="text-clinical-700">{blockTypes.find((item) => item.id === block.type)?.label}</strong>
-            <span className="min-w-0 break-words">
-              <b>{block.title}</b>
-              <br />
-              {block.text || block.url || "Contenido pendiente."}
-            </span>
-            <div className="flex gap-1.5">
-              <button onClick={() => setSelectedBlockId(block.id)} className="rounded-xl border border-stone-200 px-2.5 py-1.5 text-xs font-bold text-stone-600 hover:bg-stone-50">
-                {selectedBlock?.id === block.id ? "Editando" : "Editar"}
-              </button>
-              <button onClick={() => deleteBlock(block.id)} className="rounded-xl border border-red-100 p-1.5 text-red-600 hover:bg-red-50" aria-label="Eliminar bloque">
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-        ))}
-        {blocks.length === 0 && <p className="text-sm text-stone-400">Sin bloques. Agrega uno para empezar.</p>}
+      {/* Lista de bloques existentes */}
+      {blocks.length > 0 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+          {sortedBlocks(blocks).map((b) => {
+            const bt = BLOCK_TYPES.find((x) => x.id === b.type)!;
+            const active = selBlock?.id === b.id;
+            return (
+              <div key={b.id} style={{
+                display: "flex", alignItems: "center", gap: 10,
+                padding: "10px 14px", borderRadius: 10,
+                background: active ? "var(--green-light)" : "var(--surface)",
+                border: `1.5px solid ${active ? "var(--green)" : "var(--border)"}`,
+                cursor: "pointer",
+              }} onClick={() => setSelBlockId(b.id)}>
+                <span style={{ fontSize: 18 }}>{bt.emoji}</span>
+                <div style={{ flex: 1 }}>
+                  <span style={{ fontWeight: 600, fontSize: 14, color: active ? "var(--green)" : "var(--text-1)" }}>{b.title || `(${bt.label} sin título)`}</span>
+                  {b.text && <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--text-3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 300 }}>{b.text}</p>}
+                </div>
+                <button onClick={(e) => { e.stopPropagation(); deleteBlock(b.id); }}
+                  style={{ background: "none", border: "none", cursor: "pointer", color: "#dc2626", fontSize: 18, padding: "2px 4px" }} title="Eliminar">×</button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Añadir nuevo bloque */}
+      <div style={{ marginBottom: 20 }}>
+        <p style={{ margin: "0 0 10px", fontSize: 13, fontWeight: 600, color: "var(--text-2)" }}>Añadir nuevo bloque:</p>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          {BLOCK_TYPES.map((bt) => (
+            <button key={bt.id} onClick={() => addBlock(bt.id)} style={{
+              display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+              padding: "10px 14px", borderRadius: 12,
+              border: "1.5px dashed var(--border)",
+              background: "var(--surface)",
+              cursor: "pointer", fontSize: 12, color: "var(--text-2)", fontWeight: 600,
+              transition: "border-color .15s, color .15s",
+              minWidth: 72,
+            }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "var(--green)"; (e.currentTarget as HTMLElement).style.color = "var(--green)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "var(--border)"; (e.currentTarget as HTMLElement).style.color = "var(--text-2)"; }}>
+              <span style={{ fontSize: 20 }}>{bt.emoji}</span>
+              {bt.label}
+              <span style={{ fontSize: 10, opacity: 0.7, fontWeight: 400 }}>{bt.hint}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
-      <button onClick={addBlock} className="mt-3 inline-flex items-center gap-2 rounded-2xl bg-clinical-50 px-3.5 py-2.5 font-bold text-clinical-700 hover:bg-clinical-100">
-        <Plus className="h-4 w-4" /> Agregar bloque
-      </button>
-
-      {selectedBlock && <BlockEditor key={selectedBlock.id} block={selectedBlock} onSave={saveBlock} />}
+      {/* Editor del bloque seleccionado */}
+      {selBlock && <BlockEditor key={selBlock.id} block={selBlock} onSave={saveBlock} />}
     </div>
   );
 }
 
-function BlockEditor({ block, onSave }: { block: CmsBlock; onSave: (block: CmsBlock) => void }) {
-  const [type, setType] = useState<CmsBlockType>(block.type);
-  const [title, setTitle] = useState(block.title || "");
-  const [text, setText] = useState(block.text || "");
-  const [url, setUrl] = useState(block.url || "");
+/* ─── Block editor ── */
+function BlockEditor({ block, onSave }: { block: CmsBlock; onSave: (b: CmsBlock) => void }) {
+  const [type,      setType]      = useState<CmsBlockType>(block.type);
+  const [title,     setTitle]     = useState(block.title || "");
+  const [text,      setText]      = useState(block.text || "");
+  const [url,       setUrl]       = useState(block.url || "");
+  const [label,     setLabel]     = useState(block.label || "");
   const [uploading, setUploading] = useState(false);
+  const [saved,     setSaved]     = useState(false);
+
+  const bt = BLOCK_TYPES.find((x) => x.id === type)!;
 
   function save(nextUrl = url) {
-    onSave({ ...block, type, title: title.trim() || "Bloque sin título", text, url: nextUrl });
+    onSave({ ...block, type, title: title.trim(), text, url: nextUrl, label });
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
   }
 
   return (
-    <div className="mt-5 rounded-2xl border border-stone-200 bg-clinical-50 p-4">
-      <h4 className="font-extrabold text-clinical-700">Bloque seleccionado</h4>
-      <div className="mt-3 grid gap-3 sm:grid-cols-3">
-        <SelectField
-          label="Tipo de bloque"
-          value={type}
-          onChange={(value) => setType(value as CmsBlockType)}
-          options={blockTypes.map((item) => ({ value: item.id, label: item.label }))}
-        />
-        <Field label="Título del bloque" value={title} onChange={setTitle} />
-        <Field label="Archivo o enlace" value={url} onChange={setUrl} placeholder="URL de YouTube, PDF, imagen o recurso" />
+    <div style={{ padding: 20, background: "var(--surface)", borderRadius: 14, border: "1.5px solid var(--border)", marginTop: 4 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+        <span style={{ fontSize: 24 }}>{bt.emoji}</span>
+        <div>
+          <p style={{ margin: 0, fontWeight: 700, fontSize: 15, color: "var(--text-1)" }}>Editando bloque: {bt.label}</p>
+          <p style={{ margin: 0, fontSize: 12, color: "var(--text-3)" }}>{bt.hint}</p>
+        </div>
       </div>
-      <Area label="Texto o descripción del bloque" value={text} onChange={setText} />
-      <label className="mt-3 block">
-        <span className="text-sm font-bold text-stone-700">Subir documento, imagen o video</span>
-        <span className="mt-1.5 flex min-h-[44px] cursor-pointer items-center gap-2 rounded-2xl border border-dashed border-clinical-300 px-3.5 text-sm font-bold text-clinical-700">
-          <Upload className="h-4 w-4" /> {uploading ? "Subiendo…" : "Subir archivo"}
-        </span>
-        <input
-          type="file"
-          className="sr-only"
-          onChange={async (event) => {
-            const file = event.target.files?.[0];
+
+      {/* Tipo */}
+      <div style={{ marginBottom: 14 }}>
+        <p style={{ margin: "0 0 8px", fontSize: 13, fontWeight: 600, color: "var(--text-2)" }}>Cambiar tipo de bloque:</p>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {BLOCK_TYPES.map((x) => (
+            <button key={x.id} onClick={() => setType(x.id)} style={{
+              padding: "5px 12px", borderRadius: 8, border: "1.5px solid",
+              borderColor: type === x.id ? "var(--green)" : "var(--border)",
+              background: type === x.id ? "var(--green-light)" : "transparent",
+              color: type === x.id ? "var(--green)" : "var(--text-2)",
+              fontWeight: type === x.id ? 700 : 500, fontSize: 13, cursor: "pointer",
+            }}>
+              {x.emoji} {x.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <AdminField label="Título del bloque (encabezado que verá el paciente)" value={title} onChange={setTitle} />
+
+      {(type === "text" || type === "note" || type === "pdf" || type === "link" || type === "video") && (
+        <AdminArea
+          label={type === "note" ? "Texto de la cita (lo que el paciente leerá)" : "Descripción o texto explicativo"}
+          value={text} onChange={setText}
+          rows={type === "text" ? 6 : 3}
+        />
+      )}
+
+      {(type === "video" || type === "pdf" || type === "link" || type === "image") && (
+        <AdminField
+          label={type === "video" ? "URL del video (p.ej. https://youtube.com/watch?v=...)" : type === "image" ? "URL de la imagen" : "URL del recurso"}
+          value={url} onChange={setUrl}
+        />
+      )}
+
+      {type === "link" && (
+        <AdminField label="Texto del botón (p.ej. 'Ver más información')" value={label} onChange={setLabel} />
+      )}
+
+      {(type === "image" || type === "pdf") && (
+        <label style={{ display: "block", marginTop: 14 }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-2)", display: "block", marginBottom: 8 }}>
+            O sube un archivo desde tu computadora
+          </span>
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: 8,
+            padding: "10px 18px", borderRadius: 10, border: "1.5px dashed var(--green)",
+            background: "var(--green-xlight)", color: "var(--green)",
+            fontWeight: 600, fontSize: 14, cursor: "pointer",
+          }}>
+            <Upload style={{ width: 15, height: 15 }} />
+            {uploading ? "Subiendo…" : "Subir archivo"}
+          </span>
+          <input type="file" style={{ display: "none" }} onChange={async (e) => {
+            const file = e.target.files?.[0];
             if (!file) return;
             setUploading(true);
             const uploadedUrl = await uploadAsset(`cms/${type}`, file);
             setUrl(uploadedUrl);
             setUploading(false);
             save(uploadedUrl);
-          }}
-        />
-      </label>
-      <button onClick={() => save()} className="mt-3 rounded-2xl bg-clinical-500 px-4 py-2.5 font-bold text-white hover:bg-clinical-600">
-        Guardar bloque
+          }} />
+        </label>
+      )}
+
+      <button onClick={() => save()} style={{ ...btnGreen, marginTop: 16 }}>
+        {saved ? "✓ Guardado" : "Guardar bloque"}
       </button>
     </div>
   );
 }
 
-function Stat({ label, value }: { label: string; value: number }) {
+/* ─── UI helpers ── */
+const btnGreen: React.CSSProperties = {
+  display: "inline-flex", alignItems: "center", gap: 6,
+  padding: "9px 18px", background: "var(--green)", color: "#fff",
+  border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700,
+  cursor: "pointer",
+};
+
+function StepBar({ step }: { step: number }) {
+  const steps = ["Sección", "Tema", "Subtema", "Bloques"];
   return (
-    <div className="rounded-2xl border border-stone-200 bg-white p-4">
-      <p className="text-sm font-extrabold text-clinical-600">{label}</p>
-      <p className="mt-2 text-3xl font-extrabold text-clinical-700">{value}</p>
+    <div style={{ display: "flex", alignItems: "center", gap: 0, marginBottom: 4 }}>
+      {steps.map((s, i) => (
+        <div key={i} style={{ display: "flex", alignItems: "center" }}>
+          <div style={{
+            display: "flex", alignItems: "center", gap: 6,
+            padding: "6px 14px", borderRadius: 980,
+            background: step >= i + 1 ? "var(--green)" : "var(--surface)",
+            color: step >= i + 1 ? "#fff" : "var(--text-3)",
+            fontWeight: 600, fontSize: 13,
+            boxShadow: "var(--shadow-card)",
+          }}>
+            <span style={{ width: 18, height: 18, borderRadius: "50%", background: step >= i + 1 ? "rgba(255,255,255,.25)" : "var(--bg)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800 }}>{i + 1}</span>
+            {s}
+          </div>
+          {i < steps.length - 1 && <div style={{ width: 24, height: 1, background: step > i + 1 ? "var(--green)" : "var(--border)" }} />}
+        </div>
+      ))}
     </div>
   );
 }
 
-function Field({
-  label,
-  value,
-  onChange,
-  type = "text",
-  placeholder
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  type?: string;
-  placeholder?: string;
-}) {
+function StepLabel({ n, label }: { n: number; label: string }) {
   return (
-    <label className="block">
-      <span className="text-sm font-bold text-stone-700">{label}</span>
-      <input
-        value={value}
-        type={type}
-        placeholder={placeholder}
-        onChange={(event) => onChange(event.target.value)}
-        className="mt-1.5 min-h-[44px] w-full rounded-2xl border border-stone-200 px-3.5 outline-none focus:border-clinical-400 focus:ring-2 focus:ring-clinical-100"
+    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <span style={{ width: 24, height: 24, borderRadius: "50%", background: "var(--green)", color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, flexShrink: 0 }}>{n}</span>
+      <span style={{ fontWeight: 700, fontSize: 15, color: "var(--text-1)" }}>{label}</span>
+    </div>
+  );
+}
+
+function Panel({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ background: "var(--surface)", borderRadius: 18, padding: 24, boxShadow: "var(--shadow-card)" }}>
+      {children}
+    </div>
+  );
+}
+
+function SmallBtn({ children, onClick, danger }: { children: React.ReactNode; onClick: () => void; danger?: boolean }) {
+  return (
+    <button onClick={onClick} style={{
+      padding: "5px 12px", borderRadius: 8, border: "1.5px solid",
+      borderColor: danger ? "#fca5a5" : "var(--border)",
+      background: danger ? "#fef2f2" : "var(--bg)",
+      color: danger ? "#dc2626" : "var(--text-2)",
+      fontWeight: 600, fontSize: 12, cursor: "pointer",
+    }}>
+      {children}
+    </button>
+  );
+}
+
+function AdminField({ label, value, onChange, type = "text", placeholder }: { label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string }) {
+  return (
+    <label style={{ display: "block" }}>
+      <span style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--text-2)", marginBottom: 6, letterSpacing: "0.01em" }}>{label}</span>
+      <input value={value} type={type} placeholder={placeholder} onChange={(e) => onChange(e.target.value)}
+        style={{ width: "100%", padding: "10px 12px", fontSize: 14, border: "1.5px solid var(--border)", borderRadius: 10, outline: "none", color: "var(--text-1)", background: "var(--bg)", fontFamily: "var(--font)", boxSizing: "border-box", transition: "border-color .15s" }}
+        onFocus={e => (e.currentTarget.style.borderColor = "var(--green)")}
+        onBlur={e  => (e.currentTarget.style.borderColor = "var(--border)")}
       />
     </label>
   );
 }
 
-function NumberField({ label, value, onChange }: { label: string; value: number; onChange: (value: number) => void }) {
+function AdminNumber({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
   return (
-    <label className="block">
-      <span className="text-sm font-bold text-stone-700">{label}</span>
-      <input
-        type="number"
-        min={1}
-        value={value}
-        onChange={(event) => onChange(Number(event.target.value))}
-        className="mt-1.5 min-h-[44px] w-full rounded-2xl border border-stone-200 px-3.5 outline-none focus:border-clinical-400 focus:ring-2 focus:ring-clinical-100"
+    <label style={{ display: "block" }}>
+      <span style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--text-2)", marginBottom: 6 }}>{label}</span>
+      <input type="number" min={1} value={value} onChange={(e) => onChange(Number(e.target.value))}
+        style={{ width: "100%", padding: "10px 12px", fontSize: 14, border: "1.5px solid var(--border)", borderRadius: 10, outline: "none", color: "var(--text-1)", background: "var(--bg)", fontFamily: "var(--font)", boxSizing: "border-box" }}
+        onFocus={e => (e.currentTarget.style.borderColor = "var(--green)")}
+        onBlur={e  => (e.currentTarget.style.borderColor = "var(--border)")}
       />
     </label>
   );
 }
 
-function SelectField({
-  label,
-  value,
-  onChange,
-  options
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  options: { value: string; label: string }[];
-}) {
+function AdminSelect({ label, value, onChange, options }: { label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[] }) {
   return (
-    <label className="block">
-      <span className="text-sm font-bold text-stone-700">{label}</span>
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="mt-1.5 min-h-[44px] w-full rounded-2xl border border-stone-200 px-3.5"
-      >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
+    <label style={{ display: "block" }}>
+      <span style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--text-2)", marginBottom: 6 }}>{label}</span>
+      <select value={value} onChange={(e) => onChange(e.target.value)}
+        style={{ width: "100%", padding: "10px 12px", fontSize: 14, border: "1.5px solid var(--border)", borderRadius: 10, background: "var(--bg)", color: "var(--text-1)", fontFamily: "var(--font)", boxSizing: "border-box" }}>
+        {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
     </label>
   );
 }
 
-function Area({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
+function AdminArea({ label, value, onChange, rows = 3 }: { label: string; value: string; onChange: (v: string) => void; rows?: number }) {
   return (
-    <label className="mt-3 block">
-      <span className="text-sm font-bold text-stone-700">{label}</span>
-      <textarea
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        rows={3}
-        className="mt-1.5 w-full rounded-2xl border border-stone-200 px-3.5 py-2.5 outline-none focus:border-clinical-400 focus:ring-2 focus:ring-clinical-100"
+    <label style={{ display: "block", marginTop: 12 }}>
+      <span style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--text-2)", marginBottom: 6 }}>{label}</span>
+      <textarea value={value} rows={rows} onChange={(e) => onChange(e.target.value)}
+        style={{ width: "100%", padding: "10px 12px", fontSize: 14, border: "1.5px solid var(--border)", borderRadius: 10, outline: "none", color: "var(--text-1)", background: "var(--bg)", fontFamily: "var(--font)", resize: "vertical", boxSizing: "border-box", lineHeight: 1.6 }}
+        onFocus={e => (e.currentTarget.style.borderColor = "var(--green)")}
+        onBlur={e  => (e.currentTarget.style.borderColor = "var(--border)")}
       />
     </label>
   );

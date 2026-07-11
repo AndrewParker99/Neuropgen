@@ -104,6 +104,49 @@ body {
   font-style: italic;
 }
 
+/* ── Tipografía editorial (NYT / Vogue style) ── */
+:root {
+  --font-editorial: Georgia, "Times New Roman", "Palatino Linotype", serif;
+}
+
+.article-title {
+  font-family: var(--font-editorial);
+  font-size: clamp(34px, 5vw, 58px);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  color: var(--text-1);
+  text-wrap: balance;
+}
+
+.article-deck {
+  font-family: var(--font), sans-serif;
+  font-size: 18px;
+  line-height: 1.65;
+  color: var(--text-2);
+  font-style: italic;
+  font-weight: 400;
+}
+
+.article-body {
+  font-family: var(--font-editorial);
+  font-size: 18px;
+  line-height: 1.85;
+  color: #2c2c2e;
+}
+
+.pull-quote {
+  font-family: var(--font-editorial);
+  font-size: 24px;
+  line-height: 1.45;
+  font-style: italic;
+  color: var(--green);
+  border-top: 2px solid var(--green);
+  border-bottom: 2px solid var(--green);
+  padding: 24px 0;
+  margin: 0;
+}
+
 /* Enlace "volver" en PageShell */
 .back-link {
   font-size: 14px;
