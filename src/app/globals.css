@@ -2,62 +2,109 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Fondo oscuro con dos orbes de brillo verde ── */
+/* ── Tokens ── */
+:root {
+  --bg:           #f5f5f7;
+  --surface:      #ffffff;
+  --text-1:       #1d1d1f;
+  --text-2:       #6e6e73;
+  --text-3:       #aeaeb2;
+  --green:        #1a8f5e;
+  --green-mid:    #16a34a;
+  --green-light:  #e6f4ed;
+  --green-xlight: #f0faf5;
+  --border:       rgba(0,0,0,0.08);
+  --radius-card:  22px;
+  --shadow-card:  0 2px 16px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.04);
+  --shadow-hover: 0 8px 32px rgba(0,0,0,0.11), 0 0 0 1px rgba(0,0,0,0.05);
+  --font:         -apple-system, BlinkMacSystemFont, "SF Pro Display",
+                  "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ── Reset base ── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { font-family: var(--font); -webkit-font-smoothing: antialiased; }
+
 body {
-  background-color: #05120a;
-  background-image:
-    radial-gradient(ellipse 75% 55% at 8% 12%,  rgba(30, 120, 80, 0.38) 0%, transparent 62%),
-    radial-gradient(ellipse 55% 65% at 92% 88%,  rgba(20, 90, 60, 0.30) 0%, transparent 62%),
-    radial-gradient(ellipse 40% 35% at 68% 18%,  rgba(60, 168, 120, 0.15) 0%, transparent 55%);
+  background: var(--bg);
+  color: var(--text-1);
   min-height: 100vh;
+  margin: 0;
+}
+
+/* ── Nav sticky frosted ── */
+.site-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  background: rgba(245, 245, 247, 0.82);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+
+/* ── Cards ── */
+.apple-card {
+  background: var(--surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 0.3s ease, transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94);
+}
+.apple-card:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-3px);
+}
+
+/* ── Botón principal ── */
+.btn-green {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--green);
   color: #fff;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  padding: 10px 20px;
+  border-radius: 980px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.18s ease, transform 0.18s ease;
+  text-decoration: none;
+}
+.btn-green:hover {
+  background: #157a4f;
+  transform: scale(1.02);
 }
 
-/* ── Vidrio / Glass card ── */
-.glass {
-  background: rgba(255, 255, 255, 0.065);
-  backdrop-filter: blur(22px) saturate(160%);
-  -webkit-backdrop-filter: blur(22px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.11);
-  box-shadow:
-    0 24px 64px rgba(0, 0, 0, 0.40),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+/* ── Badge / pill ── */
+.badge-green {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--green-light);
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  padding: 6px 14px;
+  border-radius: 980px;
 }
 
-.glass-hover {
-  transition:
-    transform       0.28s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow      0.28s cubic-bezier(0.22, 1, 0.36, 1),
-    background      0.22s ease,
-    border-color    0.22s ease;
+/* ── Quote ── */
+.quote-block {
+  border-left: 3px solid var(--green);
+  padding: 16px 20px;
+  background: var(--green-xlight);
+  border-radius: 0 12px 12px 0;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--text-2);
+  font-style: italic;
 }
 
-.glass-hover:hover {
-  transform: translateY(-5px);
-  background: rgba(255, 255, 255, 0.10);
-  border-color: rgba(74, 222, 128, 0.30);
-  box-shadow:
-    0 32px 80px rgba(0, 0, 0, 0.45),
-    0  0  40px rgba(60, 168, 120, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.18);
-}
-
-/* ── Nav pills glass ── */
-.nav-pill {
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  color: rgba(255, 255, 255, 0.85);
-  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
-}
-.nav-pill:hover {
-  background: rgba(255, 255, 255, 0.13);
-  border-color: rgba(74, 222, 128, 0.35);
-  color: #fff;
-}
-
-/* ── Animación reducida ── */
 @media (prefers-reduced-motion: reduce) {
-  .glass-hover:hover { transform: none; }
+  .apple-card:hover { transform: none; }
+  .btn-green:hover { transform: none; }
 }

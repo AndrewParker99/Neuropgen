@@ -5,9 +5,9 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { useCms } from "@/components/CmsProvider";
 
 const cardLinks: Record<string, string> = {
-  enfermedades: "/enfermedades",
-  psicoeducacion: "/psicoeducacion",
-  recursos: "/recursos",
+  enfermedades:  "/enfermedades",
+  psicoeducacion:"/psicoeducacion",
+  recursos:      "/recursos",
   "grupo-apoyo": "/grupo-apoyo",
 };
 
@@ -15,81 +15,105 @@ export function HomeClient() {
   const { site } = useCms();
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden">
-      <div className="mx-auto w-[min(1180px,calc(100%-32px))]">
-        <SiteHeader />
+    <div style={{ minHeight: "100vh" }}>
+      <SiteHeader />
 
-        <main className="grid items-center gap-8 py-10 lg:grid-cols-[1.15fr_1fr]">
+      <main style={{ maxWidth: 1180, margin: "0 auto", padding: "0 20px" }}>
 
-          {/* ── Hero card ── */}
-          <section className="glass rounded-[32px] p-8 sm:p-12">
-            <span className="inline-flex items-center gap-2 rounded-full border border-green-400/25 bg-green-400/10 px-4 py-2 text-sm font-bold tracking-wide text-green-300">
-              <span className="h-1.5 w-1.5 rounded-full bg-green-400" />
-              Un refugio para familias extraordinarias
+        {/* ── Hero ── */}
+        <section style={{ padding: "80px 0 64px", display: "grid", gap: 64, gridTemplateColumns: "1fr 1fr", alignItems: "center" }}>
+
+          <div>
+            <span className="badge-green">
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--green)", display: "inline-block" }} />
+              Psicoeducación genética y neuropsicológica
             </span>
 
-            <h1 className="mt-7 text-[clamp(44px,7vw,70px)] font-black leading-[0.93] tracking-tight text-white">
-              Neuro<span className="text-green-400">pGen</span>
+            <h1 style={{
+              marginTop: 24,
+              fontSize: "clamp(42px, 5.5vw, 68px)",
+              fontWeight: 800,
+              lineHeight: 1.0,
+              letterSpacing: "-0.04em",
+              color: "var(--text-1)",
+            }}>
+              Información que<br />
+              <span style={{ color: "var(--green)" }}>acompaña</span> a tu familia.
             </h1>
 
-            <h2 className="mt-4 text-[clamp(17px,2.2vw,24px)] font-semibold leading-snug text-white/70">
-              Conectando la genética, el neurodesarrollo y las familias.
-            </h2>
-
-            <p className="mt-5 max-w-[52ch] text-[16px] leading-relaxed text-white/55">
-              NeuropGen acerca información confiable, clara y humana sobre genética y
-              neuropsicología a pacientes, familias y profesionales de salud.
+            <p style={{ marginTop: 20, fontSize: 18, lineHeight: 1.65, color: "var(--text-2)", maxWidth: "42ch" }}>
+              NeuropGen acerca información confiable, clara y humana sobre genética y neuropsicología a pacientes, familias y profesionales.
             </p>
 
-            <blockquote className="mt-8 rounded-2xl border border-green-500/20 bg-green-500/10 p-6 text-[15px] font-medium leading-relaxed text-white/80">
-              <span className="mb-1 block text-2xl leading-none text-green-400/50">&ldquo;</span>
-              Cuando llega un diagnóstico, también puede empezar un camino acompañado,
-              con palabras simples y pasos posibles.
-              <span className="block text-right text-2xl leading-none text-green-400/50">&rdquo;</span>
-            </blockquote>
-          </section>
+            <div style={{ marginTop: 32, display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+              <Link href="/enfermedades" className="btn-green">
+                Explorar biblioteca
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                  <path d="M3 7h8M8 4l3 3-3 3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </Link>
+              <Link href="/grupo-apoyo" style={{ fontSize: 15, fontWeight: 500, color: "var(--green)", textDecoration: "none", letterSpacing: "-0.01em" }}>
+                Grupo de apoyo →
+              </Link>
+            </div>
 
-          {/* ── Módulos ── */}
-          <section aria-label="Módulos principales" className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <blockquote className="quote-block" style={{ marginTop: 40 }}>
+              Cuando llega un diagnóstico, también puede empezar un camino acompañado, con palabras simples y pasos posibles.
+            </blockquote>
+          </div>
+
+          {/* ── Cards de módulos ── */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
             {site.sections.map((section) => (
               <article
                 key={section.id}
-                className="glass glass-hover flex min-h-[268px] flex-col justify-between rounded-[28px] p-6"
+                className="apple-card"
+                style={{ padding: 24, display: "flex", flexDirection: "column", justifyContent: "space-between", minHeight: 220 }}
               >
                 <div>
-                  <span className="grid h-[50px] w-[50px] place-items-center rounded-2xl border border-white/10 bg-white/08 text-[22px]"
-                    style={{ background: "rgba(255,255,255,0.08)" }}>
+                  <span style={{
+                    display: "grid", placeItems: "center",
+                    width: 48, height: 48,
+                    borderRadius: 14,
+                    background: "var(--green-light)",
+                    fontSize: 22,
+                    marginBottom: 14,
+                  }}>
                     {section.icon}
                   </span>
-                  <h3 className="mt-5 text-[19px] font-extrabold leading-tight text-white">
+                  <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, letterSpacing: "-0.02em", color: "var(--text-1)", lineHeight: 1.25 }}>
                     {section.title}
                   </h3>
-                  <p className="mt-2 text-[14px] leading-relaxed text-white/55">
+                  <p style={{ margin: "6px 0 0", fontSize: 13, lineHeight: 1.55, color: "var(--text-2)" }}>
                     {section.summary}
                   </p>
                 </div>
-
                 <Link
                   href={cardLinks[section.id] || "/"}
-                  className="mt-5 inline-flex w-fit items-center gap-2 rounded-xl bg-green-500 px-5 py-2.5 text-[14px] font-bold text-white shadow-lg shadow-green-900/40 transition-colors duration-200 hover:bg-green-400"
+                  style={{ marginTop: 18, fontSize: 13, fontWeight: 600, color: "var(--green)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4 }}
                 >
                   Acceder
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                    <path d="M2.5 7h9M8 3.5l3.5 3.5L8 10.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                    <path d="M2 6h8M7 3l3 3-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </Link>
               </article>
             ))}
-          </section>
-        </main>
+          </div>
+        </section>
+      </main>
 
-        <footer className="mb-4 rounded-2xl border border-white/08 bg-white/[0.04] px-6 py-5 text-center text-[13px] leading-relaxed text-white/40"
-          style={{ borderColor: "rgba(255,255,255,0.08)" }}>
-          Neuropsicólogo Andrés Escalera Páez · Dra. Belen Prieto Corona · Dra. Sulema Rojas · Dra. Julieta Moreno · Dr. Edgar Ricardez
-          <br />
-          <span className="text-white/25">© {new Date().getFullYear()} Neurapeuta — Todos los derechos reservados</span>
-        </footer>
-      </div>
+      <footer style={{
+        borderTop: "1px solid var(--border)",
+        padding: "24px 20px",
+        textAlign: "center",
+        fontSize: 12,
+        color: "var(--text-3)",
+        lineHeight: 1.8,
+      }}>
+        Neuropsicólogo Andrés Escalera Páez · Dra. Belen Prieto Corona · Dra. Sulema Rojas · Dra. Julieta Moreno · Dr. Edgar Ricardez
+        <br />© {new Date().getFullYear()} Neurapeuta. Todos los derechos reservados.
+      </footer>
     </div>
   );
 }
