@@ -72,10 +72,9 @@ export function CmsPublic({
     setDone(loadProgress(sectionSlug));
   }, [sectionSlug]);
 
-  /* Calcular progreso global de la sección */
-  const totalSubtopics = topics.reduce((acc, t) => acc + publishedOnly(sortedSubtopics(t.subtopics)).length, 0);
-  const doneSoFar      = topics.reduce((acc, t) =>
-    acc + publishedOnly(sortedSubtopics(t.subtopics)).filter((st) => done.has(st.id)).length, 0);
+  /* Progreso del tema activo (no de toda la sección) */
+  const totalSubtopics = subtopics.length;
+  const doneSoFar      = subtopics.filter((st) => done.has(st.id)).length;
   const pct = totalSubtopics > 0 ? Math.round((doneSoFar / totalSubtopics) * 100) : 0;
 
   /* Siguiente subtema (para botón Continuar) */
@@ -122,11 +121,11 @@ export function CmsPublic({
         {/* ────── SIDEBAR ────── */}
         <aside style={{ position: "sticky", top: 72 }}>
 
-          {/* Progreso global */}
+          {/* Progreso del tema activo */}
           <div style={{ marginBottom: 20 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
               <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-3)" }}>
-                Tu progreso
+                {topic ? "Tu progreso" : "Elige un tema"}
               </span>
               <span style={{ fontSize: 12, fontWeight: 700, color: pct === 100 ? "var(--green)" : "var(--text-2)" }}>
                 {pct}%
@@ -142,7 +141,9 @@ export function CmsPublic({
               }} />
             </div>
             <p style={{ margin: "6px 0 0", fontSize: 11, color: "var(--text-3)" }}>
-              {doneSoFar} de {totalSubtopics} lecciones completadas
+              {topic
+                ? `${doneSoFar} de ${totalSubtopics} lecciones de "${topic.title}"`
+                : "Selecciona un tema para ver tu avance"}
             </p>
           </div>
 
