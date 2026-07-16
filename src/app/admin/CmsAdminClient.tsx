@@ -31,7 +31,7 @@ export function CmsAdminClient() {
   const [loginError,    setLoginError]    = useState("");
 
   /* Selección actual */
-  const [sectionId,  setSectionId]  = useState<CmsSection["id"]>("enfermedades");
+  const [sectionId,  setSectionId]  = useState<CmsSection["id"]>("genetico");
   const [topicId,    setTopicId]    = useState("");
   const [subtopicId, setSubtopicId] = useState("");
 

@@ -4,7 +4,7 @@ import { cmsSeed } from "@/lib/cms-seed";
 import { hasSupabaseConfig, supabase } from "@/lib/supabase";
 import { CmsSite } from "@/types/cms";
 
-const STORAGE_KEY = "neuropgen-cms-site";
+const STORAGE_KEY = "neuropgen-cms-site-v2";
 const SITE_ID = "site";
 
 export async function loadCmsSite(): Promise<CmsSite> {

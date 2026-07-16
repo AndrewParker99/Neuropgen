@@ -7,11 +7,11 @@ function block(id: string, type: CmsSite["sections"][number]["topics"][number]["
 export const cmsSeed: CmsSite = {
   sections: [
     {
-      id: "enfermedades",
-      slug: "enfermedades",
-      title: "Enfermedades Genéticas",
+      id: "genetico",
+      slug: "genetico",
+      title: "Genético",
       icon: "🧬",
-      summary: "Biblioteca clara sobre síndromes, genética y apoyos.",
+      summary: "Síndromes y enfermedades genéticas explicadas para familias.",
       order: 1,
       status: "published",
       topics: [
@@ -19,77 +19,44 @@ export const cmsSeed: CmsSite = {
           id: "sindrome-de-turner",
           slug: "sindrome-de-turner",
           title: "Síndrome de Turner",
-          summary: "Biblioteca clara sobre síndrome de Turner, genética, manifestaciones y apoyos para casa y escuela.",
+          summary: "Causa genética, manifestaciones clínicas, perfil neuropsicológico y recomendaciones para casa y escuela.",
           order: 1,
           status: "published",
           subtopics: [
             {
-              id: "que-es",
+              id: "que-es-turner",
               slug: "que-es",
               title: "¿Qué es?",
               order: 1,
               status: "published",
               blocks: [
-                block("b1", "text", 1, "¿Qué es?", "Explicación para familias con formato simple."),
-                block("b2", "image", 2, "Imagen principal", "Subida desde Firebase Storage.", "")
+                block("b1", "text", 1, "¿Qué es el Síndrome de Turner?", "Explicación para familias con formato simple."),
               ]
             },
             {
-              id: "causa-genetica",
+              id: "causa-genetica-turner",
               slug: "causa-genetica",
               title: "Causa genética",
               order: 2,
               status: "published",
-              blocks: [block("b3", "text", 1, "Causa genética", "Descripción de la causa genética.")]
+              blocks: [block("b2", "text", 1, "Causa genética", "Descripción de la causa genética.")]
             },
             {
-              id: "manifestaciones-clinicas",
+              id: "manifestaciones-turner",
               slug: "manifestaciones-clinicas",
               title: "Manifestaciones clínicas",
               order: 3,
               status: "published",
-              blocks: [block("b4", "text", 1, "Manifestaciones clínicas", "Listado de manifestaciones clínicas.")]
+              blocks: [block("b3", "text", 1, "Manifestaciones clínicas", "Listado de manifestaciones clínicas.")]
             },
             {
-              id: "perfil-neuropsicologico",
-              slug: "perfil-neuropsicologico",
-              title: "Perfil neuropsicológico",
+              id: "recomendaciones-turner",
+              slug: "recomendaciones",
+              title: "Recomendaciones para casa",
               order: 4,
               status: "published",
-              blocks: [block("b5", "text", 1, "Perfil neuropsicológico", "Descripción del perfil neuropsicológico.")]
+              blocks: [block("b4", "text", 1, "Recomendaciones para casa", "Sugerencias prácticas para la familia.")]
             },
-            {
-              id: "recomendaciones-para-casa",
-              slug: "recomendaciones-para-casa",
-              title: "Recomendaciones para casa",
-              order: 5,
-              status: "published",
-              blocks: [block("b6", "text", 1, "Recomendaciones para casa", "Sugerencias prácticas para la familia.")]
-            },
-            {
-              id: "recomendaciones-para-escuela",
-              slug: "recomendaciones-para-escuela",
-              title: "Recomendaciones para escuela",
-              order: 6,
-              status: "published",
-              blocks: [block("b7", "text", 1, "Recomendaciones para escuela", "Sugerencias prácticas para el entorno escolar.")]
-            },
-            {
-              id: "recursos-descargables",
-              slug: "recursos-descargables",
-              title: "Recursos descargables",
-              order: 7,
-              status: "published",
-              blocks: [block("b8", "pdf", 1, "Recurso descargable", "Archivo descargable para casa o escuela.", "")]
-            },
-            {
-              id: "videos-relacionados",
-              slug: "videos-relacionados",
-              title: "Videos relacionados",
-              order: 8,
-              status: "published",
-              blocks: [block("b9", "video", 1, "Video relacionado", "YouTube o video subido.", "https://youtube.com/")]
-            }
           ]
         },
         {
@@ -101,12 +68,12 @@ export const cmsSeed: CmsSite = {
           status: "published",
           subtopics: [
             {
-              id: "que-es",
+              id: "que-es-xfragil",
               slug: "que-es",
               title: "¿Qué es?",
               order: 1,
               status: "published",
-              blocks: [block("b10", "text", 1, "¿Qué es?", "Explicación para familias con formato simple.")]
+              blocks: [block("b5", "text", 1, "¿Qué es?", "Explicación para familias con formato simple.")]
             }
           ]
         },
@@ -114,7 +81,7 @@ export const cmsSeed: CmsSite = {
           id: "sindrome-de-williams",
           slug: "sindrome-de-williams",
           title: "Síndrome de Williams",
-          summary: "Tema listo para completar desde el panel administrador.",
+          summary: "Contenido por agregar desde el panel administrador.",
           order: 3,
           status: "draft",
           subtopics: []
@@ -123,7 +90,7 @@ export const cmsSeed: CmsSite = {
           id: "cadasil",
           slug: "cadasil",
           title: "CADASIL",
-          summary: "Tema listo para completar desde el panel administrador.",
+          summary: "Contenido por agregar desde el panel administrador.",
           order: 4,
           status: "draft",
           subtopics: []
@@ -131,146 +98,153 @@ export const cmsSeed: CmsSite = {
       ]
     },
     {
-      id: "psicoeducacion",
-      slug: "psicoeducacion",
-      title: "Psicoeducación",
+      id: "neuropsicologico",
+      slug: "neuropsicologico",
+      title: "Neuropsicológico",
       icon: "🧠",
-      summary: "Videos y explicaciones sobre neurodesarrollo y aprendizaje.",
+      summary: "Perfiles cognitivos, funciones ejecutivas y aprendizaje.",
       order: 2,
       status: "published",
       topics: [
         {
-          id: "neurodesarrollo",
-          slug: "neurodesarrollo",
-          title: "Neurodesarrollo",
-          summary: "Videos y explicaciones para comprender hitos, conducta y aprendizaje.",
+          id: "funciones-ejecutivas",
+          slug: "funciones-ejecutivas",
+          title: "Funciones Ejecutivas",
+          summary: "Planeación, memoria de trabajo, atención y regulación explicadas para familias.",
           order: 1,
           status: "published",
           subtopics: [
             {
-              id: "introduccion",
+              id: "fe-introduccion",
               slug: "introduccion",
               title: "Introducción",
               order: 1,
               status: "published",
-              blocks: [block("b11", "text", 1, "Introducción", "Texto introductorio sobre neurodesarrollo.")]
-            },
-            {
-              id: "video-educativo",
-              slug: "video-educativo",
-              title: "Video educativo",
-              order: 2,
-              status: "published",
-              blocks: [block("b12", "video", 1, "Video educativo", "", "https://youtube.com/")]
+              blocks: [block("b6", "text", 1, "¿Qué son las funciones ejecutivas?", "Explicación para familias con formato simple.")]
             }
           ]
         },
         {
-          id: "autismo",
-          slug: "autismo",
-          title: "Autismo",
-          summary: "Material sobre el espectro autista y estrategias de acompañamiento.",
+          id: "memoria",
+          slug: "memoria",
+          title: "Memoria",
+          summary: "Tipos de memoria y estrategias de apoyo para casa y escuela.",
           order: 2,
           status: "draft",
           subtopics: []
         },
         {
-          id: "tdah",
-          slug: "tdah",
-          title: "TDAH",
-          summary: "Material sobre atención, impulsividad y estrategias prácticas.",
+          id: "atencion",
+          slug: "atencion",
+          title: "Atención",
+          summary: "Cómo funciona la atención y cómo apoyarla en casa.",
           order: 3,
           status: "draft",
           subtopics: []
         },
         {
-          id: "funciones-ejecutivas",
-          slug: "funciones-ejecutivas",
-          title: "Funciones Ejecutivas",
-          summary: "Material sobre planeación, memoria de trabajo, atención y regulación.",
+          id: "lenguaje",
+          slug: "lenguaje",
+          title: "Lenguaje",
+          summary: "Desarrollo del lenguaje y señales de alerta.",
           order: 4,
+          status: "draft",
+          subtopics: []
+        }
+      ]
+    },
+    {
+      id: "conductual",
+      slug: "conductual",
+      title: "Conductual",
+      icon: "💚",
+      summary: "Estrategias para manejo de conducta, emociones y regulación.",
+      order: 3,
+      status: "published",
+      topics: [
+        {
+          id: "regulacion-emocional",
+          slug: "regulacion-emocional",
+          title: "Regulación emocional",
+          summary: "Estrategias prácticas para acompañar emociones difíciles en casa.",
+          order: 1,
           status: "published",
           subtopics: [
             {
-              id: "introduccion",
+              id: "re-introduccion",
               slug: "introduccion",
               title: "Introducción",
               order: 1,
               status: "published",
-              blocks: [block("b13", "text", 1, "Introducción", "Explicación para familias con formato simple.")]
+              blocks: [block("b7", "text", 1, "¿Qué es la regulación emocional?", "Explicación para familias con formato simple.")]
             }
           ]
+        },
+        {
+          id: "conductas-desafiantes",
+          slug: "conductas-desafiantes",
+          title: "Conductas desafiantes",
+          summary: "Cómo entender y responder a conductas difíciles.",
+          order: 2,
+          status: "draft",
+          subtopics: []
+        },
+        {
+          id: "rutinas",
+          slug: "rutinas",
+          title: "Rutinas y estructura",
+          summary: "Por qué las rutinas ayudan y cómo implementarlas.",
+          order: 3,
+          status: "draft",
+          subtopics: []
         }
       ]
     },
     {
       id: "recursos",
       slug: "recursos",
-      title: "Recursos para Familias",
-      icon: "📚",
-      summary: "Guías, infografías, checklists y materiales descargables.",
-      order: 3,
+      title: "Recursos Descargables",
+      icon: "📄",
+      summary: "Guías, infografías, checklists y materiales en PDF.",
+      order: 4,
       status: "published",
       topics: [
         {
-          id: "guias",
-          slug: "guias",
-          title: "Guías",
-          summary: "Materiales descargables para acompañamiento en casa y escuela.",
+          id: "guias-familias",
+          slug: "guias-familias",
+          title: "Guías para familias",
+          summary: "Materiales descargables para acompañamiento en casa.",
           order: 1,
           status: "published",
           subtopics: [
             {
-              id: "descripcion",
-              slug: "descripcion",
-              title: "Descripción",
+              id: "guia-primer-diagnostico",
+              slug: "primer-diagnostico",
+              title: "Guía: primer diagnóstico",
               order: 1,
               status: "published",
-              blocks: [block("b14", "text", 1, "Descripción", "Descripción general de la guía.")]
-            },
-            {
-              id: "pdf-descargable",
-              slug: "pdf-descargable",
-              title: "PDF descargable",
-              order: 2,
-              status: "published",
-              blocks: [block("b15", "pdf", 1, "PDF descargable", "", "")]
-            }
-          ]
-        },
-        {
-          id: "infografias",
-          slug: "infografias",
-          title: "Infografías",
-          summary: "Material visual de apoyo para familias y escuela.",
-          order: 2,
-          status: "draft",
-          subtopics: []
-        },
-        {
-          id: "checklists",
-          slug: "checklists",
-          title: "Checklists",
-          summary: "Listas prácticas para organizar información y seguimiento.",
-          order: 3,
-          status: "published",
-          subtopics: [
-            {
-              id: "descripcion",
-              slug: "descripcion",
-              title: "Descripción",
-              order: 1,
-              status: "published",
-              blocks: [block("b16", "text", 1, "Descripción", "Descripción general del checklist.")]
+              blocks: [
+                block("b8", "text", 1, "¿Qué hacer cuando llega un diagnóstico?", "Pasos prácticos para familias que acaban de recibir un diagnóstico genético o neurológico."),
+                block("b9", "pdf", 2, "Descargar guía en PDF", "", "")
+              ]
             }
           ]
         },
         {
           id: "material-escolar",
           slug: "material-escolar",
-          title: "Material escolar",
+          title: "Material para la escuela",
           summary: "Recursos pensados para docentes y entorno escolar.",
-          order: 4,
+          order: 2,
+          status: "draft",
+          subtopics: []
+        },
+        {
+          id: "infografias",
+          slug: "infografias",
+          title: "Infografías",
+          summary: "Material visual de apoyo para familias.",
+          order: 3,
           status: "draft",
           subtopics: []
         }
@@ -282,14 +256,14 @@ export const cmsSeed: CmsSite = {
       title: "Grupo de Apoyo",
       icon: "🤝",
       summary: "Próxima reunión, tema, modalidad e inscripción.",
-      order: 4,
+      order: 5,
       status: "published",
       topics: [
         {
           id: "reuniones",
           slug: "reuniones",
-          title: "Reuniones",
-          summary: "Próxima reunión, modalidad, tema, inscripción y datos de contacto.",
+          title: "Próxima reunión",
+          summary: "Fecha, modalidad, tema e inscripción.",
           order: 1,
           status: "published",
           subtopics: [
@@ -299,7 +273,7 @@ export const cmsSeed: CmsSite = {
               title: "Próxima reunión",
               order: 1,
               status: "published",
-              blocks: [block("b17", "note", 1, "Próxima reunión", "Información de la próxima reunión del grupo de apoyo.")]
+              blocks: [block("b10", "note", 1, "Próxima reunión", "Información de la próxima reunión del grupo de apoyo.")]
             }
           ]
         },
@@ -309,15 +283,6 @@ export const cmsSeed: CmsSite = {
           title: "Inscripción",
           summary: "Cómo inscribirte al grupo de apoyo.",
           order: 2,
-          status: "draft",
-          subtopics: []
-        },
-        {
-          id: "contacto",
-          slug: "contacto",
-          title: "Contacto",
-          summary: "Datos de contacto del equipo NeuropGen.",
-          order: 3,
           status: "draft",
           subtopics: []
         }

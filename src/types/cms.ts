@@ -1,4 +1,4 @@
-export type CmsSectionSlug = "enfermedades" | "psicoeducacion" | "recursos" | "grupo-apoyo";
+export type CmsSectionSlug = "genetico" | "neuropsicologico" | "conductual" | "recursos" | "grupo-apoyo";
 
 export type PublishStatus = "published" | "draft";
 
